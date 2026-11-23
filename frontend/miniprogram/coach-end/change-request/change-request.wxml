@@ -1,0 +1,37 @@
+<view class="page">
+  <view wx:if="{{error}}" class="empty" bindtap="onShow">{{error}} · 点击刷新</view>
+  <view class="card">
+    <view class="section-title">提交调课申请</view>
+    <view class="form-row"><text>选择课程</text>
+      <picker range="{{schedules}}" range-key="label" bindchange="onSchedule">
+        <view class="picker">{{scheduleLabel || (schedules.length ? '请选择未来排课' : '暂无可选排课')}}</view>
+      </picker>
+    </view>
+    <view class="form-row"><text>调课类型</text>
+      <picker range="{{types}}" range-key="label" bindchange="onType">
+        <view class="picker">{{type=='TIME'?'换时间':type=='COACH'?'换教练':'换教室'}} ›</view>
+      </picker>
+    </view>
+    <block wx:if="{{type=='TIME'}}">
+      <view class="form-row"><text>新日期</text><picker mode="date" bindchange="onNewDate"><view class="picker">{{newDate||'选择'}}</view></picker></view>
+      <view class="form-row"><text>新开始</text><picker mode="time" bindchange="onNewStart"><view class="picker">{{newStart||'选择'}}</view></picker></view>
+      <view class="form-row"><text>新结束</text><picker mode="time" bindchange="onNewEnd"><view class="picker">{{newEnd||'选择'}}</view></picker></view>
+    </block>
+    <block wx:if="{{type=='COACH'}}">
+      <view class="form-row"><text>新教练</text><picker range="{{coaches}}" range-key="name" bindchange="onNewCoach"><view class="picker">{{newCoachName || '请选择'}}</view></picker></view>
+    </block>
+    <block wx:if="{{type=='CLASSROOM'}}">
+      <view class="form-row"><text>新教室</text><picker range="{{classrooms}}" range-key="name" bindchange="onNewClassroom"><view class="picker">{{newClassroomName || '请选择'}}</view></picker></view>
+    </block>
+    <input class="input" placeholder="申请原因" value="{{reason}}" maxlength="255" bindinput="onReason" />
+    <button class="btn-primary" disabled="{{loading || submitting}}" bindtap="submit">{{submitting ? '提交中…' : '提交申请'}}</button>
+  </view>
+
+  <view class="section-title">申请记录</view>
+  <view wx:if="{{!requests.length}}" class="empty">暂无调课申请</view>
+  <view class="card" wx:for="{{requests}}" wx:key="id">
+    <view class="l-head"><text>#{{item.scheduleId}} {{item.type}}</text><text class="st">{{statusText[item.status]}}</text></view>
+    <view class="muted">{{item.reason}}</view>
+    <view wx:if="{{item.status === 'REJECTED' && item.rejectReason}}" class="muted">拒绝原因：{{item.rejectReason}}</view>
+  </view>
+</view>

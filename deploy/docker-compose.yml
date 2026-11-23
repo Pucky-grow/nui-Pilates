@@ -1,0 +1,65 @@
+# Cloud template: external RDS/Tair/OSS. All images are immutable digests selected by operator.
+name: pilates-staging
+x-runtime: &runtime
+  restart: unless-stopped
+  init: true
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  logging:
+    driver: json-file
+    options: {max-size: "10m", max-file: "3"}
+  stop_grace_period: 40s
+services:
+  server:
+    <<: *runtime
+    image: ${SERVER_IMAGE:?Set verified private image digest}
+    user: "10001:10001"
+    mem_limit: 1200m
+    cpus: 1.5
+    environment:
+      SPRING_PROFILES_ACTIVE: ${APP_PROFILE:-staging}
+      SPRING_CONFIG_ADDITIONAL_LOCATION: file:/run/secrets/application.properties
+    secrets:
+      - source: app-config
+        target: application.properties
+    volumes: [upload-data:/data/uploads]
+    tmpfs: ["/tmp:size=128m,mode=1777"]
+    networks: [private]
+    healthcheck:
+      test: [CMD, curl, --fail, --silent, http://127.0.0.1:9091/actuator/health/liveness]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+  admin:
+    <<: *runtime
+    image: ${ADMIN_IMAGE:?Set verified private image digest}
+    user: nginx
+    mem_limit: 128m
+    cpus: 0.3
+    tmpfs: ["/tmp:size=32m,mode=1777", "/var/cache/nginx:size=32m,uid=101,gid=101"]
+    networks: [private]
+  nginx:
+    <<: *runtime
+    image: ${EDGE_IMAGE:?Set verified private edge image digest}
+    user: nginx
+    mem_limit: 128m
+    cpus: 0.5
+    ports: ["127.0.0.1:${HTTPS_PORT:-8443}:8443"]
+    volumes:
+      - ${TLS_DIRECTORY:?Set protected certificate directory}:/run/certs:ro
+    tmpfs: ["/tmp:size=32m,mode=1777", "/var/cache/nginx:size=32m,uid=101,gid=101"]
+    networks:
+      private:
+        ipv4_address: 172.29.88.10
+    depends_on: [server, admin]
+networks:
+  private:
+    ipam:
+      config: [{subnet: 172.29.88.0/24}]
+volumes:
+  upload-data:
+secrets:
+  app-config:
+    file: ${APP_CONFIG_FILE:?Set protected runtime configuration}

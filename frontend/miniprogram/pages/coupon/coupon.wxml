@@ -1,0 +1,13 @@
+<view class="page">
+  <view class="section-title">领券中心</view>
+  <view class="card" wx:for="{{allCoupons}}" wx:key="id">
+    <view class="c-head"><text>{{item.name}}</text><text class="btn-plain c-btn" bindtap="receive" data-id="{{item.id}}">领取</text></view>
+    <view class="muted">{{item.minAmount>0?'满'+item.minAmount+'元可用':'无门槛'}} · 有效期至 {{item.validUntil}}</view>
+  </view>
+  <view class="section-title">我的优惠券</view>
+  <view wx:if="{{!myCoupons.length}}" class="empty">暂无优惠券</view>
+  <view class="card" wx:for="{{myCoupons}}" wx:key="id">
+    <view class="c-head"><text>{{item.name}}</text><text class="muted">{{item.status}}</text></view>
+    <view class="muted">满{{item.minAmount}}可用 · 有效期至 {{item.validUntil}}</view>
+  </view>
+</view>

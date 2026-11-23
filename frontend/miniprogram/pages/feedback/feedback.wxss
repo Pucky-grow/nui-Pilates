@@ -1,0 +1,6 @@
+.picker { border: 2rpx solid var(--line); border-radius: 12rpx; padding: 16rpx; margin-bottom: 16rpx; }
+.input { border: 2rpx solid var(--line); border-radius: 12rpx; padding: 16rpx; margin-bottom: 16rpx; width: 100%; box-sizing: border-box; }
+.area { height: 180rpx; }
+.f-head { display: flex; justify-content: space-between; font-weight: 600; margin-bottom: 8rpx; }
+.st { color: var(--sage-deep); font-size: 24rpx; }
+.reply { color: var(--sage-deep); font-size: 24rpx; margin-top: 8rpx; }

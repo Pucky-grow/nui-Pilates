@@ -1,0 +1,48 @@
+<view class="page">
+  <view wx:if="{{error}}" class="error">
+    {{error}}
+    <text bindtap="load">
+      　重试
+    </text>
+  </view>
+  <view class="card booking-filters">
+    <view class="title">{{scheduleId ? '场次预约名单' : userId ? '该会员的系统预约' : '系统预约记录'}}</view>
+    <view class="toolbar">
+      <input value="{{keyword}}" placeholder="会员、手机号、课程、预约编号" confirm-type="search" bindinput="input" bindconfirm="load"/>
+      <button class="admin-action secondary" disabled="{{busy}}" bindtap="load">查找预约</button>
+    </view>
+    <view class="toolbar filters">
+      <picker range="{{statuses}}" value="{{statusIndex}}" disabled="{{busy}}" bindchange="status">
+        <view class="date">状态 · {{statuses[statusIndex]}}</view>
+      </picker>
+      <picker mode="date" value="{{date}}" disabled="{{busy}}" bindchange="date">
+        <view class="date">上课日期 · {{date || '全部'}}</view>
+      </picker>
+      <button wx:if="{{date}}" class="admin-action quiet" disabled="{{busy}}" bindtap="clearDate">清除日期</button>
+    </view>
+    <button wx:if="{{canManage}}" class="admin-action primary" bindtap="add">代会员预约</button>
+  </view>
+  <view class="card" wx:for="{{list}}" wx:key="id" data-id="{{item.booking.id}}" bindtap="open">
+    <view class="title">
+      {{item.nickname || '会员'}} · {{item.booking.courseName}}
+    </view>
+    <view>
+      {{item.booking.courseDate}} {{item.booking.startTime}}
+    </view>
+    <view>
+      {{item.booking.coachName}} · {{item.booking.classroomName}}
+    </view>
+    <view class="status">
+      {{item.statusLabel}}
+    </view>
+    <view class="hint">
+      {{item.booking.bookingNo}}
+    </view>
+  </view>
+  <button wx:if="{{list.length < total}}" loading="{{busy}}" disabled="{{busy}}" bindtap="more">
+    加载更多（{{list.length}} / {{total}}）
+  </button>
+  <view wx:if="{{!list.length && !busy && !error}}" class="empty">
+    {{userId && !scheduleId && !status && !date && !appliedKeyword ? '该会员还没有系统预约记录' : '暂无符合条件的预约'}}
+  </view>
+</view>

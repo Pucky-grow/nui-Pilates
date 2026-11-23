@@ -1,0 +1,8 @@
+<view class="page">
+  <view class="card balance">当前积分 <text class="num">{{balance}}</text></view>
+  <view wx:if="{{!records.length}}" class="empty">暂无积分记录</view>
+  <view class="card" wx:for="{{records}}" wx:key="id">
+    <view class="p-head"><text>{{item.reason}}</text><text class="{{item.changeType=='EARN'?'earn':'spend'}}">{{item.changeType=='EARN'?'+':'-'}}{{item.points}}</text></view>
+    <view class="muted small">{{item.createdAt}} · 余额{{item.balanceAfter}}</view>
+  </view>
+</view>

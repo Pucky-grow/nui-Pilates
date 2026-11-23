@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "课程资料",
+  "enablePullDownRefresh": true,
+  "usingComponents": {
+    "management-form": "../components/management-form/index"
+  }
+}

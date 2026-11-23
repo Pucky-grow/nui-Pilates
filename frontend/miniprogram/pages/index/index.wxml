@@ -1,0 +1,71 @@
+<view class="page">
+  <!-- 品牌头部 -->
+  <view class="hero">
+    <view class="hero-title">优仪普拉提</view>
+    <view class="hero-slogan">{{slogan}}</view>
+  </view>
+
+  <!-- Banner -->
+  <swiper wx:if="{{banners.length}}" class="banner" indicator-dots autoplay circular>
+    <swiper-item wx:for="{{banners}}" wx:key="id">
+      <view class="banner-bg">
+        <image wx:if="{{item.imageUrl}}" class="banner-img" src="{{item.imageUrl}}" mode="aspectFill" />
+        <view class="banner-mask">
+          <text class="banner-title">{{item.title}}</text>
+          <text class="banner-sub">{{item.subtitle}}</text>
+        </view>
+      </view>
+    </swiper-item>
+  </swiper>
+
+  <!-- 快捷入口 -->
+  <view class="quick">
+    <view class="quick-item" bindtap="goCourse"><image class="qi-icon" src="/assets/icons/booking.png" mode="aspectFit"/><text>预约课程</text></view>
+    <view class="quick-item" bindtap="goPrivate"><image class="qi-icon" src="/assets/icons/private.png" mode="aspectFit"/><text>私教预约</text></view>
+    <view class="quick-item" bindtap="goBookings"><image class="qi-icon" src="/assets/icons/booking.png" mode="aspectFit"/><text>我的预约</text></view>
+    <view class="quick-item" bindtap="goCoaches"><image class="qi-icon" src="/assets/icons/coach.png" mode="aspectFit"/><text>教练团队</text></view>
+  </view>
+
+  <!-- 今日课程 -->
+  <view class="section-title">今日课程</view>
+  <scroll-view wx:if="{{todayCourses.length}}" scroll-x class="h-scroll">
+    <view class="course-card" wx:for="{{todayCourses}}" wx:key="id" bindtap="goSchedule" data-id="{{item.id}}">
+      <view class="cc-time">{{item.startTime}}</view>
+      <view class="cc-name">{{item.courseName}}</view>
+      <view class="muted">{{item.coachName}} · {{item.remaining}}席</view>
+    </view>
+  </scroll-view>
+  <view wx:else class="empty">今日暂无课程</view>
+
+  <!-- 热门课程 -->
+  <view class="section-title">热门课程</view>
+  <view class="card course-row" wx:for="{{hotCourses}}" wx:key="id" bindtap="goCourseDetail" data-id="{{item.courseId}}">
+    <view class="course-name">{{item.courseName}}</view>
+    <view class="muted">{{item.difficulty}} · {{item.durationMinutes}}分钟</view>
+    <view class="tag">{{item.coachName}}</view>
+  </view>
+
+  <!-- 教练团队 -->
+  <view class="section-title">教练团队</view>
+  <scroll-view scroll-x class="h-scroll">
+    <view class="coach-card" wx:for="{{coaches}}" wx:key="id" bindtap="goCoach" data-id="{{item.id}}">
+      <image wx:if="{{item.avatar}}" class="avatar coach-avatar" src="{{item.avatar}}" mode="aspectFill" />
+      <view wx:else class="avatar coach-avatar coach-avatar-fallback">{{item.name}}</view>
+      <view class="coach-name">{{item.name}}</view>
+      <view class="muted">{{item.title}}</view>
+    </view>
+  </scroll-view>
+
+  <!-- 普拉提知识 -->
+  <view class="section-title">普拉提知识</view>
+  <view class="card article-row" wx:for="{{articles}}" wx:key="id" bindtap="goArticle" data-id="{{item.id}}">
+    <view class="article-title">{{item.title}}</view>
+    <view class="muted">{{item.author}} · {{item.views}}阅读</view>
+  </view>
+
+  <!-- 工作室地址 -->
+  <view class="card studio" bindtap="goAbout">
+    <text>📍 {{studio.address || '查看工作室地址'}}</text>
+    <text class="muted">{{studio.hours}}</text>
+  </view>
+</view>

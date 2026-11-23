@@ -1,0 +1,35 @@
+<view class="page" wx:if="{{student}}">
+  <view class="card head">
+    <image wx:if="{{student.avatarUrl}}" class="avatar big-avatar" src="{{student.avatarUrl}}" mode="aspectFill"/>
+    <view wx:else class="avatar big-avatar coach-avatar-fallback">{{student.nickname}}</view>
+    <view class="name">{{student.nickname}}</view>
+    <view class="muted">{{student.levelName}} · 累计{{student.totalSessions}}次训练</view>
+    <view class="muted">手机 {{student.phone}}</view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">训练历史</view>
+    <view wx:if="{{!student.allowTrainingView}}" class="empty">该学员未授权查看训练历史</view>
+    <view wx:elif="{{!student.trainingHistory.length}}" class="empty">暂无训练记录</view>
+    <block wx:else>
+      <view class="record" wx:for="{{student.trainingHistory}}" wx:key="id">
+        <view class="r-head"><text>{{item.trainingDate}}</text><text class="muted">{{item.intensity}}</text></view>
+        <view class="muted">目标: {{item.goal}}</view>
+        <view>{{item.content}}</view>
+        <view class="muted">建议: {{item.suggestion}}</view>
+      </view>
+    </block>
+  </view>
+
+  <view class="card">
+    <view class="section-title">身体评估</view>
+    <view wx:if="{{!student.allowAssessmentView}}" class="empty">该学员未授权查看身体评估</view>
+    <view wx:elif="{{!student.assessments.length}}" class="empty">暂无评估记录</view>
+    <block wx:else>
+      <view class="record" wx:for="{{student.assessments}}" wx:key="id">
+        <view class="r-head"><text>{{item.assessDate}}</text></view>
+        <view class="muted">身高{{item.height}} 体重{{item.weight}} 体脂{{item.bodyFatRate}}% 腰围{{item.waist}}</view>
+      </view>
+    </block>
+  </view>
+</view>

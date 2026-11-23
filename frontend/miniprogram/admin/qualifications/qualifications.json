@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "授课资格",
+  "enablePullDownRefresh": true,
+  "usingComponents": {
+    "management-form": "../components/management-form/index"
+  }
+}

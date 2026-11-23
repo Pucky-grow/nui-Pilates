@@ -1,0 +1,18 @@
+<view class="page">
+  <view wx:if="{{loading}}" class="empty">正在加载预约…</view>
+  <view wx:elif="{{error}}" class="empty" bindtap="load">{{error}} · 点击重试</view>
+  <block wx:elif="{{b}}">
+  <view class="card">
+    <view class="name">{{b.courseName}}</view>
+    <view class="status">{{statusText[b.status]}}</view>
+    <view class="time">{{b.courseDate}} {{b.startTime}} - {{b.endTime}}</view>
+    <view class="muted">{{b.coachName}} · {{b.classroomName}}<text wx:if="{{b.packageName}}"> · 课包:{{b.packageName}}</text></view>
+    <view wx:if="{{b.publicCancelReason}}" class="muted">门店取消原因：{{b.publicCancelReason}}</view>
+  </view>
+  <view class="footer">
+    <button wx:if="{{b.canCancel}}" class="btn-plain" bindtap="cancel" disabled="{{cancelling}}">{{cancelling ? '处理中…' : '取消预约'}}</button>
+    <view wx:if="{{b.canCheckin}}" class="btn-primary" bindtap="checkin">去签到</view>
+    <view wx:if="{{b.canReview}}" class="btn-primary" bindtap="review">去评价</view>
+  </view>
+  </block>
+</view>

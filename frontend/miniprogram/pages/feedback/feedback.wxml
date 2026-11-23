@@ -1,0 +1,19 @@
+<view class="page">
+  <view class="card">
+    <view class="section-title">提交反馈</view>
+    <picker range="{{types}}" bindchange="onType">
+      <view class="picker">{{types[typeIndex]}} ›</view>
+    </picker>
+    <textarea class="input area" placeholder="请描述你的问题或建议…" bindinput="onContent" />
+    <input class="input" placeholder="联系方式(选填)" bindinput="onContact" />
+    <button class="btn-primary" bindtap="submit">提交反馈</button>
+  </view>
+
+  <view class="section-title">我的反馈</view>
+  <view wx:if="{{!mine.length}}" class="empty">暂无反馈记录</view>
+  <view class="card" wx:for="{{mine}}" wx:key="id">
+    <view class="f-head"><text>{{item.type}}</text><text class="st">{{statusText[item.status]}}</text></view>
+    <view>{{item.content}}</view>
+    <view wx:if="{{item.reply}}" class="reply">回复: {{item.reply}}</view>
+  </view>
+</view>

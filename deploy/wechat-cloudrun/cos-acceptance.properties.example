@@ -1,0 +1,9 @@
+# Copy outside the upload bundle/Git, chmod 600. Never send real values in chat.
+# Confirm this is an isolated test bucket before write-read mode.
+# Use the actual region; the existing uni-1505023965 bucket was observed in ap-guangzhou.
+cos.region=
+cos.bucket=
+cos.expected-owner-uin=100053657418
+cos.secret-id=
+cos.secret-key=
+cos.session-token=

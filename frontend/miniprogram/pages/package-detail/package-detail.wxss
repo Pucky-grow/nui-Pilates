@@ -1,0 +1,8 @@
+.name { font-size: 38rpx; font-weight: 700; }
+.big-price { font-size: 44rpx; margin: 14rpx 0; }
+.origin { font-size: 26rpx; text-decoration: line-through; }
+.desc { color: var(--text); }
+.coupon-item { padding: 20rpx 0; border-bottom: 2rpx solid var(--line); display: flex; justify-content: space-between; }
+.coupon-item.on { color: var(--sage-deep); }
+.points-row { display: flex; justify-content: space-between; align-items: center; }
+.footer { padding: 24rpx; position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg); }

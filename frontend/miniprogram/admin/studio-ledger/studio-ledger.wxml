@@ -1,0 +1,163 @@
+<view class="ledger-page">
+  <view wx:if="{{error}}" class="ledger-error">{{error}}</view>
+  <view wx:if="{{notice && !editor && !needsRefresh}}" class="ledger-notice">{{notice}}</view>
+  <button wx:if="{{needsRefresh || (error && !editor)}}" class="ledger-refresh" disabled="{{busy}}" bindtap="load">刷新账本</button>
+  <view wx:if="{{editor}}" class="card">
+    <view class="heading">{{title}}</view>
+    <view wx:if="{{editorHint}}" class="editor-hint">{{editorHint}}</view>
+    <button wx:if="{{editor === 'lesson'}}" class="ledger-secondary inline-action" size="mini" disabled="{{busy}}" bindtap="newLessonSession">新建历史场次</button>
+    <management-form fields="{{fields}}" value="{{form}}" disabled="{{busy}}" bindchange="change"/>
+    <view wx:if="{{editor === 'lesson' && lessonCheck}}" class="lesson-check {{lessonCheck.blocked ? 'needs-attention' : ''}}">
+      <view class="lesson-check-title">{{lessonCheck.title}}</view>
+      <view wx:if="{{lessonCheck.detail}}">{{lessonCheck.detail}}</view>
+      <view wx:if="{{lessonCheck.advice}}">{{lessonCheck.advice}}</view>
+    </view>
+    <view class="ledger-actions editor-actions">
+      <button class="ledger-primary" disabled="{{busy || needsRefresh}}" loading="{{busy}}" bindtap="save">{{saveText}}</button>
+      <button class="ledger-secondary" disabled="{{busy}}" bindtap="closeEditor">{{editor === 'session' ? '退出场次编辑' : '退出编辑'}}</button>
+    </view>
+  </view>
+  <block wx:else>
+    <view wx:if="{{memberId && member.id}}" class="card">
+      <view class="member-record-heading">
+        <view class="heading">{{member.nickname}}</view>
+        <button wx:if="{{member.user_id}}" class="ledger-link" size="mini" bindtap="openProfile">会员档案 ›</button>
+      </view>
+      <view wx:if="{{member.member_no}}" class="account-meta">会员编号 {{member.member_no}}</view>
+      <view class="balance-overview">
+        <view class="account-meta">已入账余额 · {{modeText}}</view>
+        <view wx:for="{{accounts}}" wx:key="bucket" class="account-line">
+          <text>{{item.title}}</text>
+          <text class="balance-value">¥{{item.amountText}}</text>
+        </view>
+      </view>
+      <view class="actions ledger-shortcuts">
+        <button class="ledger-link" size="mini" disabled="{{busy || needsRefresh}}" bindtap="toggleSettings">{{settingsOpen ? '收起账本设置' : '账本设置 ›'}}</button>
+        <button class="ledger-link" size="mini" disabled="{{busy || needsRefresh}}" bindtap="book">按账本条款代预约 ›</button>
+      </view>
+      <view class="ledger-tabs">
+        <button class="ledger-tab {{tab === 'lessons' ? 'active' : ''}}" data-tab="lessons" disabled="{{busy}}" bindtap="tab">历史课程</button>
+        <button class="ledger-tab {{tab === 'receipts' ? 'active' : ''}}" data-tab="receipts" disabled="{{busy}}" bindtap="tab">充值与退款</button>
+        <button class="ledger-tab {{tab === 'entries' ? 'active' : ''}}" data-tab="entries" disabled="{{busy}}" bindtap="tab">余额流水</button>
+      </view>
+    </view>
+    <view wx:elif="{{!memberId}}" class="card">
+      <view class="section-actions workspace-actions">
+        <view class="heading">账本待办</view>
+        <button class="ledger-link" size="mini" disabled="{{busy || needsRefresh}}" bindtap="toggleSettings">{{settingsOpen ? '收起设置' : '门店账本设置 ›'}}</button>
+      </view>
+      <view class="ledger-tabs">
+        <button class="ledger-tab {{tab === 'review' ? 'active' : ''}}" data-tab="review" disabled="{{busy}}" bindtap="tab">待处理账目</button>
+        <button class="ledger-tab {{tab === 'sessions' ? 'active' : ''}}" data-tab="sessions" disabled="{{busy}}" bindtap="tab">历史上课场次</button>
+      </view>
+      <view class="actions">
+        <button class="ledger-link" size="mini" bindtap="memberList">查找或新建会员 ›</button>
+        <button class="ledger-link" size="mini" bindtap="lateFees">处理临时取消费 ›</button>
+      </view>
+    </view>
+
+    <view wx:if="{{settingsOpen && memberId}}" class="card settings-panel">
+      <view class="settings-row">
+        <view class="heading">余额使用范围</view>
+        <view class="account-meta">当前 {{modeText}}</view>
+        <button class="ledger-secondary" size="mini" data-kind="mode" disabled="{{busy}}" bindtap="showEditor">更改余额使用范围</button>
+      </view>
+      <view class="settings-row">
+        <view class="heading">旧账处理</view>
+        <view class="account-meta">{{importModeText}}<text wx:if="{{importCutoffText}}"> · 截至 {{importCutoffText}}</text></view>
+        <view wx:if="{{!wallet.import_mode}}" class="account-meta">有旧收款、扣费明细可逐笔补录。只有旧账结余时可录入期初余额。</view>
+        <view class="actions">
+          <button class="ledger-secondary" size="mini" data-kind="import" disabled="{{busy}}" bindtap="showEditor">设置逐笔补录</button>
+          <button class="ledger-secondary" size="mini" data-kind="opening" disabled="{{busy}}" bindtap="showEditor">{{wallet.import_mode === 'OPENING' ? '查看或录入期初余额' : '录入期初余额'}}</button>
+        </view>
+      </view>
+    </view>
+    <view wx:elif="{{settingsOpen}}" class="card settings-panel">
+      <view class="actions">
+        <button class="ledger-secondary" size="mini" data-kind="default" disabled="{{busy}}" bindtap="showEditor">新会员默认余额范围</button>
+        <button class="ledger-secondary" size="mini" data-tab="rules" disabled="{{busy}}" bindtap="tab">取消与爽约收费规则</button>
+        <button class="ledger-secondary" size="mini" data-tab="grants" disabled="{{busy}}" bindtap="tab">取消费处理权限</button>
+      </view>
+    </view>
+
+    <view wx:if="{{member.id && !settingsOpen && (tab === 'lessons' || tab === 'receipts')}}" class="card tab-operations">
+      <view class="account-meta">{{tab === 'lessons' ? '保存补录后，再核实课程和费用。' : '单据核实后，可查看是否计入余额。'}}</view>
+      <view wx:if="{{tab === 'lessons'}}" class="actions">
+        <button class="ledger-primary" size="mini" data-kind="lesson" disabled="{{busy || needsRefresh}}" bindtap="showEditor">补录历史课</button>
+      </view>
+      <view wx:else class="actions">
+        <button class="ledger-primary" size="mini" data-kind="recharge" disabled="{{busy || needsRefresh}}" bindtap="showEditor">补录充值</button>
+        <button class="ledger-secondary" size="mini" data-kind="refund" disabled="{{busy || needsRefresh}}" bindtap="showEditor">登记线下退款</button>
+      </view>
+    </view>
+    <view wx:if="{{tab === 'sessions' || tab === 'rules' || tab === 'grants'}}" class="card section-actions">
+      <view class="heading">{{tab === 'sessions' ? '历史上课场次' : tab === 'rules' ? '取消与爽约收费规则' : '取消费处理权限'}}</view>
+      <button wx:if="{{tab === 'sessions'}}" size="mini" class="ledger-secondary" data-kind="session" disabled="{{busy || needsRefresh}}" bindtap="showEditor">新增历史场次</button>
+      <button wx:if="{{tab === 'rules'}}" size="mini" class="ledger-secondary" data-kind="rule" disabled="{{busy || needsRefresh}}" bindtap="showEditor">发布规则</button>
+      <button wx:if="{{tab === 'grants'}}" size="mini" class="ledger-secondary" data-kind="grant" disabled="{{busy || needsRefresh}}" bindtap="showEditor">添加授权</button>
+    </view>
+    <view wx:if="{{tab === 'review' && pendingReceipts.length}}" class="card">
+      <view class="heading">待核实单据</view>
+      <button wx:for="{{pendingReceipts}}" wx:key="id" class="pending-row" data-id="{{item.member_id}}" data-tab="receipts" bindtap="openMember">
+        <view>{{item.kindText}} ¥{{item.amountText}}　›</view>
+        <view class="account-meta">{{item.member_no}} · {{item.timeText}}</view>
+      </button>
+    </view>
+    <view wx:if="{{tab === 'review' && rows.length}}" class="card">
+      <view class="heading">历史课待核实或待结算</view>
+      <button wx:for="{{rows}}" wx:key="id" class="pending-row" data-id="{{item.member_id}}" bindtap="openMember">
+        <view>{{item.course_name}} · {{item.stateText}}　›</view>
+        <view class="account-meta">{{item.member_no}} · {{item.timeText}}</view>
+      </button>
+    </view>
+    <view wx:if="{{!rows.length && !busy && !error && (tab !== 'review' || !pendingReceipts.length)}}" class="card ledger-empty">
+      {{tab === 'review' ? '暂无待处理账目' : tab === 'lessons' ? '还没有历史课记录' : tab === 'receipts' ? '还没有充值或退款单据' : tab === 'entries' ? '还没有已入账的余额流水' : '暂无记录'}}
+    </view>
+    <block wx:if="{{tab !== 'review'}}">
+    <view wx:for="{{rows}}" wx:key="id" class="card">
+      <view wx:if="{{tab === 'lessons' || tab === 'receipts'}}">
+        <view class="record-heading">
+          <view class="heading">{{item.course_name || item.kindText}} <text class="account-meta">#{{item.id}}</text></view>
+          <text class="record-state {{item.state === 'PENDING_VERIFY' || item.settlement === 'WAITING_BALANCE' ? 'pending' : ''}}">{{item.stateText}}</text>
+        </view>
+        <view class="account-meta">{{item.timeText}} {{item.outcomeText}} {{item.basisText}}</view>
+        <view wx:if="{{tab === 'receipts'}}" class="record-amount">¥{{item.amountText}}</view>
+        <view wx:elif="{{item.settlement === 'POSTED' || item.settlement === 'WAITING_BALANCE'}}" class="record-amount">{{item.settlement === 'POSTED' ? '已扣' : '应扣'}} ¥{{item.amountText}}</view>
+        <view wx:elif="{{item.originalFeeText}}" class="record-amount">{{item.decision === 'MANUAL' ? '填报扣费' : '原费用'}} ¥{{item.originalFeeText}}</view>
+        <view wx:if="{{item.settlement === 'WAITING_BALANCE'}}" class="account-meta">待结算。点「核对并结算」查看账户余额和扣款条件。</view>
+        <view wx:if="{{item.reason}}">{{item.reason}}</view>
+        <view class="actions">
+          <button wx:if="{{item.state === 'PENDING_VERIFY'}}" class="ledger-primary" size="mini" data-id="{{item.id}}" data-type="{{tab}}" data-action="verify" disabled="{{busy || needsRefresh}}" bindtap="review">{{tab === 'receipts' ? '核实单据' : '核实课程'}}</button>
+          <button wx:if="{{item.settlement === 'WAITING_BALANCE'}}" class="ledger-primary" size="mini" data-id="{{item.id}}" data-type="{{tab}}" data-action="settle" disabled="{{busy || needsRefresh}}" bindtap="review">核对并结算</button>
+          <button wx:if="{{item.state === 'PENDING_VERIFY' || item.state === 'RETURNED' || item.state === 'REVERSED'}}" class="ledger-secondary" size="mini" data-id="{{item.id}}" data-kind="{{tab === 'lessons' ? 'lesson' : 'receipt'}}" disabled="{{busy || needsRefresh}}" bindtap="showEditor">修改记录</button>
+          <button wx:if="{{item.state === 'PENDING_VERIFY' || item.settlement === 'WAITING_BALANCE'}}" class="ledger-link" size="mini" data-id="{{item.id}}" data-type="{{tab}}" data-action="return" disabled="{{busy || needsRefresh}}" bindtap="review">退回修改</button>
+          <button wx:if="{{item.settlement === 'POSTED' || (tab === 'receipts' && (item.state === 'VERIFIED' || item.state === 'VERIFIED_COVERED'))}}" class="ledger-link correction" size="mini" data-id="{{item.id}}" data-type="{{tab}}" data-action="reverse" disabled="{{busy || needsRefresh}}" bindtap="review">{{item.state === 'VERIFIED_COVERED' ? '撤销核实' : '更正账目（冲正）'}}</button>
+        </view>
+      </view>
+      <view wx:elif="{{tab === 'entries'}}">
+        <view class="heading">{{item.kindText}}　¥{{item.amountText}}</view>
+        <view>{{item.typeText}} · 入账后余额 ¥{{item.afterText}}</view>
+        <view wx:if="{{item.timeText}}" class="account-meta">业务发生 {{item.timeText}}</view>
+        <view wx:if="{{item.postedText}}" class="account-meta">实际入账 {{item.postedText}}</view>
+        <view wx:if="{{item.reason}}">{{item.reason}}</view>
+      </view>
+      <view wx:elif="{{tab === 'sessions'}}">
+        <view class="heading">场次 #{{item.id}}　{{item.course_name}}</view>
+        <view>{{item.timeText}}　{{item.coach_name}} · {{item.typeText}} · ¥{{item.amountText}}</view>
+        <button size="mini" data-id="{{item.id}}" data-kind="session" bindtap="showEditor">编辑场次</button>
+      </view>
+      <view wx:elif="{{tab === 'rules'}}">
+        <view class="heading">规则 #{{item.id}} · {{item.typeText}}</view>
+        <view>生效 {{item.effective_at}} · 免费取消窗口 {{item.free_minutes}} 分钟</view>
+        <view>临时取消 {{item.late_kind === 'NONE' ? '免收' : (item.late_value / 100) + (item.late_kind === 'PERCENT' ? '%' : '元')}}</view>
+        <view>爽约 {{item.absent_kind === 'NONE' ? '免收' : (item.absent_value / 100) + (item.absent_kind === 'PERCENT' ? '%' : '元')}}</view>
+      </view>
+      <view wx:elif="{{tab === 'grants'}}">
+        <view>账号 #{{item.operator_id}}　{{item.name}} · {{item.enabled ? '已授权' : '已撤销'}}</view>
+        <button size="mini" data-id="{{item.operator_id}}" data-kind="grant" bindtap="showEditor">修改授权</button>
+      </view>
+    </view>
+    </block>
+    <button wx:if="{{more}}" disabled="{{busy || needsRefresh}}" bindtap="next">加载更多</button>
+  </block>
+</view>

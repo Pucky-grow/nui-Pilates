@@ -1,0 +1,21 @@
+<view class="page" wx:if="{{order}}">
+  <view class="card">
+    <view class="muted">订单号 {{order.orderNo}}</view>
+    <view class="status">{{order.status}}</view>
+  </view>
+  <view class="card">
+    <view class="section-title">商品信息</view>
+    <view class="item-row">
+      <text>{{order.itemName}}</text>
+      <text>¥{{order.unitPrice}}</text>
+    </view>
+    <view class="divider"/>
+    <view class="item-row"><text class="muted">优惠券</text><text class="muted">-¥{{order.discountAmount}}</text></view>
+    <view class="item-row"><text class="muted">积分抵扣</text><text class="muted">-¥{{order.pointsAmount}}</text></view>
+    <view class="item-row total"><text>实付</text><text class="price">¥{{order.payAmount}}</text></view>
+  </view>
+  <view class="footer">
+    <view wx:if="{{order.canCancel}}" class="btn-plain" bindtap="cancel">取消订单</view>
+    <view wx:if="{{order.canPay && (paymentEnabled || order.payAmount == 0)}}" class="btn-primary" bindtap="pay">{{order.payAmount == 0 ? '确认历史零元订单' : '立即支付'}}</view>
+  </view>
+</view>

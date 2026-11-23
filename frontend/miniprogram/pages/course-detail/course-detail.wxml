@@ -1,0 +1,38 @@
+<view class="page">
+  <view wx:if="{{loading}}" class="empty">加载中…</view>
+  <view wx:if="{{error}}" class="empty" bindtap="load">{{error}} · 点击重试</view>
+  <block wx:if="{{course && !loading && !error}}">
+  <image wx:if="{{course.cover}}" class="cover" src="{{course.cover}}" mode="aspectFill" />
+  <view class="card">
+    <view class="name">{{course.name}}</view>
+    <view class="tags"><text class="tag">{{course.type}}</text><text class="tag">{{course.difficulty}}</text><text class="tag">{{course.durationMinutes}}分钟</text></view>
+    <view class="price">{{bookingMode === 'FREE' ? '免费预约 · 无需购买课包' : '使用适用课包预约'}}</view>
+  </view>
+  <view class="card">
+    <view class="section-title">课程介绍</view>
+    <view>{{course.description}}</view>
+    <view wx:if="{{course.targetUsers}}" class="muted">适合人群: {{course.targetUsers}}</view>
+    <view wx:if="{{course.trainingFocus}}" class="muted">训练重点: {{course.trainingFocus}}</view>
+    <view wx:if="{{course.notices}}" class="muted">注意事项: {{course.notices}}</view>
+  </view>
+  <view class="card">
+    <view class="section-title">近期排期</view>
+    <view wx:if="{{!schedules.length}}" class="empty">暂无排期，去看看其他课程吧</view>
+    <view class="slot" wx:for="{{schedules}}" wx:key="id" bindtap="goBooking" data-id="{{item.id}}">
+      <text>{{item.courseDate}} {{item.startTime}}</text>
+      <text wx:if="{{!item.bookable}}" class="remain">{{item.unbookableReason}}</text>
+      <text wx:else class="remain">剩{{item.remaining}}席</text>
+      <text wx:if="{{item.bookable}}" class="btn-primary slot-btn">预约</text>
+    <text wx:elif="{{waitlistEnabled && item.bookingStatus === 'FULL'}}" class="btn-plain slot-btn">查看候补</text>
+      <text wx:else class="btn-plain slot-btn">不可约</text>
+    </view>
+  </view>
+  <view class="card" wx:if="{{reviews.length}}">
+    <view class="section-title">学员评价</view>
+    <view class="review" wx:for="{{reviews}}" wx:key="id">
+      <text class="r-score">★{{item.courseScore}}</text>
+      <text>{{item.content}}</text>
+    </view>
+  </view>
+  </block>
+</view>

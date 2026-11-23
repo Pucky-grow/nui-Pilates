@@ -1,0 +1,4 @@
+.picker { border: 2rpx solid var(--line); border-radius: 12rpx; padding: 16rpx; }
+.slot { display: flex; align-items: center; justify-content: space-between; padding: 18rpx 0; border-bottom: 2rpx solid var(--line); }
+.slot:last-child { border-bottom: none; }
+.slot-btn { font-size: 24rpx; padding: 8rpx 30rpx; }

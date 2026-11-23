@@ -1,0 +1,6 @@
+.balance { text-align: center; font-size: 30rpx; }
+.num { font-size: 56rpx; font-weight: 700; color: var(--sage-deep); display: block; }
+.p-head { display: flex; justify-content: space-between; font-weight: 600; }
+.earn { color: var(--sage-deep); }
+.spend { color: var(--danger); }
+.small { font-size: 22rpx; margin-top: 6rpx; }

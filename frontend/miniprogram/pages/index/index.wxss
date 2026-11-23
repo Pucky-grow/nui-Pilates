@@ -1,0 +1,38 @@
+.hero { padding: 40rpx 32rpx 20rpx; }
+.hero-title { font-size: 44rpx; font-weight: 700; color: var(--text); }
+.hero-slogan { color: var(--text-light); font-size: 26rpx; margin-top: 8rpx; }
+
+.banner { margin: 0 24rpx; border-radius: 20rpx; overflow: hidden; height: 300rpx; }
+.banner-bg { width: 100%; height: 300rpx; background: linear-gradient(135deg, #C9CDBF, #7A8B6F); }
+.banner-img { width: 100%; height: 300rpx; }
+.banner-mask { position: absolute; left: 0; bottom: 0; width: 100%; padding: 40rpx 24rpx 20rpx; background: linear-gradient(transparent, rgba(0,0,0,0.45)); color: #fff; }
+.banner-title { font-size: 34rpx; font-weight: 600; display: block; }
+.banner-sub { font-size: 24rpx; opacity: 0.9; }
+
+.quick { display: flex; justify-content: space-around; padding: 30rpx 20rpx; }
+.quick-item { text-align: center; font-size: 24rpx; color: var(--text); }
+.qi-icon { display: block; width: 96rpx; height: 96rpx; margin: 0 auto 12rpx; padding: 22rpx; box-sizing: border-box; border-radius: 50%; background: #EFF3EC; }
+
+.newbie { display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #F4EEE5, #EFF3EC); }
+.newbie-tag { color: var(--brown); font-size: 22rpx; }
+.newbie-name { font-size: 32rpx; font-weight: 600; margin: 6rpx 0; }
+.newbie-btn { width: 180rpx; padding: 14rpx 0; }
+
+.section-title { margin: 30rpx 24rpx 20rpx; font-size: 32rpx; font-weight: 600; display: flex; align-items: center; }
+.section-title::before { content: ''; width: 8rpx; height: 32rpx; background: var(--sage); border-radius: 4rpx; margin-right: 14rpx; }
+
+.h-scroll { white-space: nowrap; padding: 0 24rpx; }
+.course-card { display: inline-block; width: 220rpx; background: var(--card); border-radius: 16rpx; padding: 24rpx; margin-right: 20rpx; box-shadow: 0 4rpx 12rpx rgba(74,66,58,0.06); }
+.cc-time { color: var(--sage-deep); font-size: 30rpx; font-weight: 600; }
+.cc-name { font-size: 26rpx; margin: 8rpx 0; }
+.course-row { }
+.course-name { font-size: 30rpx; font-weight: 600; }
+
+.coach-card { display: inline-block; width: 200rpx; text-align: center; margin-right: 20rpx; }
+.coach-avatar { width: 120rpx; height: 120rpx; }
+.coach-name { font-size: 28rpx; font-weight: 600; margin-top: 10rpx; }
+
+.article-row { }
+.article-title { font-size: 28rpx; font-weight: 500; margin-bottom: 8rpx; }
+
+.studio { display: flex; flex-direction: column; gap: 6rpx; }

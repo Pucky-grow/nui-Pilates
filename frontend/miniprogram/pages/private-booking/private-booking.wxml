@@ -1,0 +1,17 @@
+<import src="../booking-confirm/readiness.wxml" />
+<view class="page">
+  <view class="card"><view class="section-title">选择教练</view><picker range="{{coaches}}" range-key="name" value="{{coachIndex}}" bindchange="onCoach"><view class="picker">{{coaches.length ? coaches[coachIndex].name : '暂无启用教练'}} ›</view></picker></view>
+  <view class="card"><view class="section-title">训练目标</view><picker range="{{goals}}" bindchange="onGoal"><view class="picker">{{goal || '请选择训练目标'}} ›</view></picker></view>
+  <view wx:if="{{bookingMode === 'FREE'}}" class="card">免费预约 · 无需购买课包</view>
+  <view wx:elif="{{bookingMode}}" class="card"><view class="section-title">选择私教课包</view><picker range="{{packages}}" range-key="name" bindchange="onPkg"><view>{{packages.length ? packages[pkgIndex].name : '暂无适用课包'}}</view></picker></view>
+  <view class="card"><view class="section-title">可选时段</view>
+    <view class="muted">首次上课请提前到店。如果有正在影响训练的不适或动作限制，请在课前与教练沟通。</view>
+    <view wx:if="{{loading}}" class="empty">加载中…</view><view wx:elif="{{error}}" class="empty" bindtap="retry">{{error}} · 点击重试</view><view wx:elif="{{!schedules.length}}" class="empty">当前预约窗口暂无私教排课</view>
+    <view class="slot" wx:for="{{schedules}}" wx:key="id">
+      <view>{{item.courseDate}} {{item.startTime}} · {{item.courseName}}</view>
+      <view class="muted"><template is="classReadiness" data="{{schedule: item}}" /></view>
+      <view wx:if="{{!item.bookable}}">{{item.unbookableReason}}</view>
+      <button class="btn-primary slot-btn" disabled="{{!item.bookable || submitting || loading}}" bindtap="submit" data-sid="{{item.id}}">{{submitting ? '提交中…' : '预约'}}</button>
+    </view>
+  </view>
+</view>

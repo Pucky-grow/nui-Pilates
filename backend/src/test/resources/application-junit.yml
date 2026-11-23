@@ -1,0 +1,31 @@
+spring:
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:${random.uuid};MODE=MySQL;NON_KEYWORDS=USER,ORDER,MEMBER,TYPE;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema-h2.sql
+  data:
+    redis:
+      host: 127.0.0.1
+      port: ${PILATES_TEST_REDIS_PORT}
+      password: ${PILATES_TEST_REDIS_PASSWORD}
+      database: 15
+
+logging:
+  level:
+    com.yoyi.pilates: warn
+    org.apache.ibatis: warn
+
+yoyi:
+  scheduling:
+    enabled: false
+  wx:
+    mock-login: true
+  pay:
+    mock-enabled: true
+  mq:
+    type: memory

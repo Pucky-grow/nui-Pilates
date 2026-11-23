@@ -1,0 +1,6 @@
+@import "../management.wxss";
+
+.booking-filters .toolbar { margin: 16rpx 0; }
+.booking-filters .toolbar input { background: #f5f2ec; }
+.booking-filters .date { background: #f1f4ee; color: #43563d; font-size: 25rpx; }
+.booking-filters .filters { gap: 10rpx; }

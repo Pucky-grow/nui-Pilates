@@ -1,0 +1,52 @@
+<view class="page">
+  <view wx:if="{{error}}" class="error">
+    {{error}}
+    <text bindtap="load">
+      　重试
+    </text>
+  </view>
+  <view class="toolbar">
+    <picker mode="date" value="{{date}}" bindchange="date">
+      <view class="date">
+        {{date}}
+      </view>
+    </picker>
+    <button bindtap="load">
+      刷新
+    </button>
+    <button wx:if="{{canCreate}}" bindtap="edit">
+      新建排课场次
+    </button>
+  </view>
+  <view class="card">
+    <management-form fields="{{fields}}" value="{{filters}}" disabled="{{busy}}" bindchange="filterChange"/>
+  </view>
+  <view class="card" wx:for="{{list}}" wx:key="id">
+    <view class="title">
+      {{item.courseName}}
+    </view>
+    <view>
+      {{item.startTime}}—{{item.endTime}} · {{item.coachName}}
+    </view>
+    <view>
+      {{item.classroomName}} · 占位 {{item.bookedCount}}/{{item.maxCapacity}} · {{item.statusLabel}}
+    </view>
+    <view class="hint">
+      {{item.managementReason}}
+    </view>
+    <view class="actions">
+      <button class="admin-action primary" data-id="{{item.id}}" bindtap="students">
+        查看预约名单
+      </button>
+      <button class="admin-action secondary" data-id="{{item.id}}" bindtap="edit">
+        场次详情
+      </button>
+    </view>
+  </view>
+  <button wx:if="{{list.length < total}}" loading="{{busy}}" disabled="{{busy}}" bindtap="more">
+    加载更多（{{list.length}} / {{total}}）
+  </button>
+  <view wx:if="{{!list.length && !busy && !error}}" class="empty">
+    暂无记录
+  </view>
+</view>

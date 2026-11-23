@@ -1,0 +1,4 @@
+const fs=require('node:fs');const path=require('node:path');const {spawnSync}=require('node:child_process');
+let js=0,json=0;const errors=[];
+function inspect(folder){for(const entry of fs.readdirSync(folder,{withFileTypes:true})){const file=path.join(folder,entry.name);if(entry.isDirectory()){if(entry.name!=='node_modules')inspect(file);continue;}if(file.endsWith('.json')){try{JSON.parse(fs.readFileSync(file,'utf8'));json++;}catch(error){errors.push(file+': '+error.message);}}else if(file.endsWith('.js')||file.endsWith('.cjs')){const result=spawnSync(process.execPath,['--check',file],{encoding:'utf8'});if(result.status)errors.push(result.stderr);else js++;}}}
+inspect(path.join(__dirname,'../frontend/miniprogram'));console.log(JSON.stringify({passed:errors.length===0,javascriptFiles:js,jsonFiles:json,errors},null,2));if(errors.length)process.exitCode=1;

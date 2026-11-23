@@ -1,0 +1,10 @@
+# Dedicated scoped runtime account; never root. Copy outside Git/upload bundle, chmod 600.
+# Execute only at an authorized location that can reach this private endpoint.
+url=jdbc:mysql://MYSQL_PRIVATE_HOST:3306/uni_pilates_test?sslMode=VERIFY_IDENTITY&connectionTimeZone=Asia/Shanghai&connectTimeout=5000&socketTimeout=10000
+database=uni_pilates_test
+user=uni_pilates_runtime
+password=
+# Optional explicit CA trust store. Use the platform's actual CA chain/hostname.
+# tls.truststore.path=/SECURE/mysql-ca.p12
+# tls.truststore.password=
+# tls.truststore.type=PKCS12

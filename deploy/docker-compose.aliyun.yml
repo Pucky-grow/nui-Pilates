@@ -1,0 +1,4 @@
+# Use only after account, budget, domain, public ingress and resource scope are approved.
+services:
+  nginx:
+    ports: !override ["${HTTPS_BIND_IP:?Explicit approved HTTPS interface required}:443:8443"]

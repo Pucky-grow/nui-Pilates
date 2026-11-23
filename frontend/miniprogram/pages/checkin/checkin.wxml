@@ -1,0 +1,14 @@
+<view class="page center">
+  <view wx:if="{{loading}}" class="tip">正在读取预约…</view>
+  <view wx:elif="{{checked}}" class="checked">✓ 签到成功</view>
+  <view wx:else>
+    <view class="tip">到店后请扫描工作人员出示的签到二维码</view>
+    <view class="muted">无法扫码时，请由教练或前台核对后代签到。</view>
+    <view wx:if="{{error}}" class="tip">{{error}}</view>
+    <button wx:if="{{canCheckin}}" class="btn-primary scan-btn" disabled="{{scanning || submitting}}" bindtap="scan">{{submitting ? '签到中…' : '扫码签到'}}</button>
+    <block wx:else>
+      <view wx:if="{{!error}}" class="muted">签到窗口为开课前 30 分钟至课程结束前。</view>
+      <button wx:if="{{bookingId}}" class="btn-plain scan-btn" bindtap="load">刷新预约状态</button>
+    </block>
+  </view>
+</view>

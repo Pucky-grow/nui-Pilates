@@ -1,0 +1,14 @@
+<view class="page">
+  <view class="card">
+    <view class="section-title">我的邀请码</view>
+    <view class="code">{{code}}</view>
+    <button class="btn-primary" bindtap="copy">复制邀请码</button>
+    <view class="muted tip">邀请好友注册并完成首次购买, 双方各得积分奖励</view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">绑定邀请码</view>
+    <input class="input" placeholder="输入好友的邀请码" bindinput="onBindCode" />
+    <button class="btn-plain" bindtap="bind">绑定</button>
+  </view>
+</view>

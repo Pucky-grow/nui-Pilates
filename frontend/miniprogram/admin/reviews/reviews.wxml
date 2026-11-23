@@ -1,0 +1,56 @@
+<view class="page">
+  <view wx:if="{{error}}" class="error">
+    {{error}}
+    <text bindtap="load">
+      　重试
+    </text>
+  </view>
+  <view class="section-title">
+    待处理请假
+  </view>
+  <view class="card" wx:for="{{leaves}}" wx:key="id">
+    <view>
+      {{item.coachName}} · {{item.leaveDate}} {{item.startTime}}—{{item.endTime}}
+    </view>
+    <view>
+      {{item.reason}}
+    </view>
+    <view class="actions">
+      <button data-id="{{item.id}}" data-type="leaves" data-approve="{{true}}" bindtap="review">
+        批准
+      </button>
+      <button data-id="{{item.id}}" data-type="leaves" data-approve="{{false}}" bindtap="review">
+        拒绝
+      </button>
+    </view>
+  </view>
+  <view class="section-title">
+    待处理调课
+  </view>
+  <view class="card" wx:for="{{changes}}" wx:key="id">
+    <view>
+      {{item.coachName}} · {{item.type}}
+    </view>
+    <view>
+      {{item.newCourseDate}} {{item.newStartTime}}—{{item.newEndTime}}
+    </view>
+    <view>
+      {{item.newCoachName}} {{item.newClassroomName}}
+    </view>
+    <view>
+      {{item.reason}}
+    </view>
+    <view class="actions">
+      <button data-id="{{item.scheduleId}}" bindtap="openSchedule">查看排课与名单</button>
+      <button data-id="{{item.id}}" data-type="change-requests" data-approve="{{true}}" bindtap="review">
+        批准
+      </button>
+      <button data-id="{{item.id}}" data-type="change-requests" data-approve="{{false}}" bindtap="review">
+        拒绝
+      </button>
+    </view>
+  </view>
+  <view wx:if="{{!leaves.length && !changes.length}}" class="empty">
+    暂无待处理申请
+  </view>
+</view>

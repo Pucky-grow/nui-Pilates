@@ -1,0 +1,33 @@
+<view class="page">
+  <view class="filter-bar">
+    <view class="fb-item {{status==''?'on':''}}" bindtap="onFilter" data-v="">全部</view>
+    <view class="fb-item {{status=='BOOKED'?'on':''}}" bindtap="onFilter" data-v="BOOKED">已预约</view>
+    <view class="fb-item {{status=='SIGNED_IN'?'on':''}}" bindtap="onFilter" data-v="SIGNED_IN">已签到</view>
+    <view class="fb-item {{status=='COMPLETED'?'on':''}}" bindtap="onFilter" data-v="COMPLETED">已完成</view>
+    <view class="fb-item {{status=='CANCELLED'?'on':''}}" bindtap="onFilter" data-v="CANCELLED">已取消</view>
+  </view>
+
+  <view wx:if="{{loading}}" class="empty">正在加载预约…</view>
+  <view wx:elif="{{error}}" class="empty" bindtap="load">{{error}} · 点击重试</view>
+  <view wx:elif="{{!bookings.length}}" class="empty">
+    还没有预约课程
+    <view class="btn-primary go-btn" bindtap="goCourse">去看看今天的课程吧</view>
+  </view>
+
+  <block wx:else>
+  <view class="card" wx:for="{{bookings}}" wx:key="id" bindtap="goDetail" data-id="{{item.id}}">
+    <view class="b-head">
+      <text class="b-name">{{item.courseName}}</text>
+      <text class="b-status">{{statusText[item.status]}}</text>
+    </view>
+    <view class="b-time">{{item.courseDate}} {{item.startTime}} - {{item.endTime}}</view>
+    <view class="muted">{{item.coachName}} · {{item.classroomName}}</view>
+    <view class="b-foot">
+      <text wx:if="{{item.packageName}}" class="muted">课包: {{item.packageName}}</text>
+      <view wx:if="{{item.canCancel}}" class="btn-plain b-cancel" catchtap="onCancel" data-id="{{item.id}}">{{cancellingId == item.id ? '处理中…' : '取消预约'}}</view>
+      <view wx:if="{{item.canCheckin}}" class="btn-primary b-checkin" catchtap="onCheckin" data-id="{{item.id}}">去签到</view>
+      <view wx:if="{{item.status=='COMPLETED'}}" class="btn-plain b-cancel" catchtap="goAgain" data-cid="{{item.courseId}}">再次预约</view>
+    </view>
+  </view>
+  </block>
+</view>

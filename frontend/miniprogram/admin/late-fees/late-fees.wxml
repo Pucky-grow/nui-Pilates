@@ -1,0 +1,20 @@
+<view class="page">
+  <view wx:if="{{error}}" class="card" bindtap="load">{{error}}　重试</view>
+  <view wx:elif="{{!rows.length && !busy}}" class="card">暂无临时取消费记录</view>
+  <view wx:for="{{rows}}" wx:key="booking_id" class="card">
+    <view class="heading">{{item.course_name}}　{{item.nickname}}</view>
+    <view>{{item.timeText}}　{{item.coach_name}}</view>
+    <view>{{item.stateText}} · 规则金额 ¥{{item.amountText}}</view>
+    <view wx:if="{{item.state === 'ELIGIBLE' && !item.ready}}">原定开课时间之后可处理</view>
+    <view wx:if="{{item.ready}}" class="actions">
+      <button size="mini" disabled="{{busy}}" data-id="{{item.booking_id}}" data-action="CHARGE" bindtap="decide">按规则收取</button>
+      <button size="mini" disabled="{{busy}}" data-id="{{item.booking_id}}" data-action="WAIVE" bindtap="decide">免收</button>
+    </view>
+    <view wx:if="{{canAdmin && item.state === 'WAITING_BALANCE'}}" class="actions">
+      <button size="mini" disabled="{{busy}}" data-id="{{item.booking_id}}" data-action="settle" bindtap="finish">续结算</button>
+      <button size="mini" disabled="{{busy}}" data-id="{{item.booking_id}}" data-action="waive" bindtap="finish">免收</button>
+    </view>
+    <button wx:if="{{canAdmin && item.state === 'POSTED'}}" size="mini" disabled="{{busy}}" data-id="{{item.booking_id}}" data-action="reverse" bindtap="finish">冲正</button>
+  </view>
+  <button wx:if="{{more}}" disabled="{{busy}}" bindtap="next">加载更多</button>
+</view>

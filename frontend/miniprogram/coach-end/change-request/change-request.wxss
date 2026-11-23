@@ -1,0 +1,5 @@
+.form-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16rpx; }
+.picker { border: 2rpx solid var(--line); border-radius: 12rpx; padding: 12rpx 20rpx; min-width: 240rpx; font-size: 26rpx; }
+.input { border: 2rpx solid var(--line); border-radius: 12rpx; padding: 16rpx; margin: 12rpx 0; }
+.l-head { display: flex; justify-content: space-between; font-weight: 600; }
+.st { color: var(--sage-deep); font-size: 24rpx; }

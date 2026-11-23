@@ -1,0 +1,5 @@
+.status { font-size: 40rpx; font-weight: 700; color: var(--sage-deep); margin-top: 10rpx; }
+.item-row { display: flex; justify-content: space-between; padding: 12rpx 0; }
+.total { font-size: 32rpx; font-weight: 600; }
+.footer { display: flex; gap: 20rpx; padding: 24rpx; position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg); }
+.footer .btn-plain, .footer .btn-primary { flex: 1; }

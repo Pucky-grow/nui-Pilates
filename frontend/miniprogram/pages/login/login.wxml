@@ -1,0 +1,47 @@
+<view class="login-page">
+  <view class="hero">
+    <view class="brand">优仪普拉提</view>
+    <view class="slogan">让身体回到更舒展的状态</view>
+  </view>
+
+  <!-- 微信一键登录(会员主入口) -->
+  <button class="btn-primary wx-btn" bindtap="wechatLogin">微信一键登录</button>
+
+  <!-- 用户协议勾选(合规) -->
+  <view class="agreement">
+    <view class="checkbox {{agreed ? 'checked' : ''}}" bindtap="toggleAgree"></view>
+    <view class="agree-text">
+      我已阅读并同意
+      <text class="link" catchtap="openAgreement">《用户协议》</text>和
+      <text class="link" catchtap="openPrivacy">《隐私政策》</text>
+    </view>
+  </view>
+
+  <view wx:if="{{studioLedger}}" class="staff-toggle" bindtap="openClaim">已有线下会员？使用门店邀请码绑定微信 ›</view>
+
+  <!-- 教练/员工登录(折叠) -->
+  <view class="staff">
+    <view class="staff-toggle" bindtap="toggleStaffLogin">教练 / 员工登录 ›</view>
+    <view wx:if="{{showStaffLogin}}" class="card staff-form">
+      <text class="muted sub">首次登录后可在教练工作台绑定微信，之后即可微信一键登录</text>
+      <input class="input" placeholder="账号" value="{{username}}" bindinput="onUsername" />
+      <input class="input" placeholder="密码" password value="{{password}}" bindinput="onPassword" />
+      <button class="btn-plain login-btn" bindtap="accountLogin">登录</button>
+    </view>
+  </view>
+
+  <!-- 完善资料弹层(新用户/缺少昵称时) -->
+  <view wx:if="{{showProfile}}" class="profile-mask">
+    <view class="profile-panel" catchtap="noop">
+      <view class="pp-title">完善你的资料</view>
+      <view class="pp-sub">让教练更好认识你（可跳过）</view>
+      <button class="avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
+        <image wx:if="{{profileAvatar}}" class="pp-avatar" src="{{profileAvatar}}" mode="aspectFill" />
+        <view wx:else class="pp-avatar pp-avatar-fallback">选头像</view>
+      </button>
+      <input class="pp-input" type="nickname" placeholder="填写昵称" value="{{profileNickname}}" bindinput="onNicknameInput" />
+      <button class="btn-primary pp-save" bindtap="saveProfile">保存并进入</button>
+      <view class="pp-skip" bindtap="skipProfile">暂不完善，直接进入</view>
+    </view>
+  </view>
+</view>

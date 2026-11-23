@@ -1,0 +1,42 @@
+<view class="page">
+  <view class="card" wx:if="{{templates.length}}">
+    <view class="section-title">训练模板</view>
+    <scroll-view scroll-x class="tpl-scroll">
+      <view class="tag tpl" wx:for="{{templates}}" wx:key="id" bindtap="useTemplate" data-i="{{index}}">{{item.name}}</view>
+    </scroll-view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">训练目标</view>
+    <input class="input" bindinput="onGoal" value="{{goal}}" placeholder="如：核心稳定 + 髋部控制" />
+  </view>
+  <view class="card">
+    <view class="section-title">训练内容</view>
+    <textarea class="input" bindinput="onContent" value="{{content}}" placeholder="训练动作、部位、完成情况…" />
+  </view>
+  <view class="card">
+    <view class="section-title">训练强度</view>
+    <view class="intensity">
+      <view class="tag {{intensity=='LOW'?'on':''}}" bindtap="onIntensity" data-v="LOW">低</view>
+      <view class="tag {{intensity=='MEDIUM'?'on':''}}" bindtap="onIntensity" data-v="MEDIUM">中</view>
+      <view class="tag {{intensity=='HIGH'?'on':''}}" bindtap="onIntensity" data-v="HIGH">高</view>
+    </view>
+  </view>
+  <view class="card">
+    <view class="section-title">动作调整（选填）</view>
+    <textarea class="input" maxlength="500" bindinput="onAdaptations" value="{{adaptations}}" placeholder="记录替代动作、缩小的范围或调整后的器械设置" />
+  </view>
+  <view class="card">
+    <view class="section-title">身体反馈</view>
+    <input class="input" bindinput="onFeedback" value="{{feedback}}" placeholder="整体完成良好…" />
+  </view>
+  <view class="card">
+    <view class="section-title">下次训练建议</view>
+    <input class="input" bindinput="onSuggestion" value="{{suggestion}}" placeholder="加强核心稳定训练…" />
+  </view>
+  <view class="card">
+    <view class="section-title">进阶标准（选填）</view>
+    <textarea class="input" maxlength="500" bindinput="onProgression" value="{{progression}}" placeholder="如：能保持呼吸和骨盆稳定，再增加动作幅度" />
+  </view>
+  <view class="footer"><button class="btn-primary" disabled="{{saving}}" bindtap="submit">{{saving ? '保存中…' : '保存'}}</button></view>
+</view>

@@ -1,0 +1,13 @@
+<view class="page">
+  <view wx:if="{{error}}" class="error">
+    {{error}}
+    <text wx:if="{{id}}" bindtap="load">　刷新</text>
+  </view>
+  <view class="card">
+    <management-form fields="{{fields}}" value="{{form}}" disabled="{{busy || uploading}}" bindchange="change" binduploadstate="onUploadState"/>
+    <view class="actions" wx:if="{{canManage}}">
+      <button class="admin-action primary" disabled="{{busy || uploading || (id && !ready)}}" bindtap="save">保存教练资料</button>
+      <button wx:if="{{id && ready}}" class="admin-action danger" disabled="{{busy || uploading}}" bindtap="removeCoach">删除教练档案</button>
+    </view>
+  </view>
+</view>

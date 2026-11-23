@@ -1,0 +1,2 @@
+.c-head { display: flex; justify-content: space-between; align-items: center; font-weight: 600; }
+.c-btn { font-size: 22rpx; padding: 6rpx 30rpx; }

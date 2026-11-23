@@ -1,0 +1,18 @@
+package com.yoyi.pilates.content.infrastructure.entity;
+
+import com.baomidou.mybatisplus.annotation.TableName;
+import com.yoyi.pilates.common.base.BaseEntity;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+/**
+ * 文章点赞(article_like 表, article+user 唯一).
+ */
+@Data
+@EqualsAndHashCode(callSuper = true)
+@TableName("article_like")
+public class ArticleLikeEntity extends BaseEntity {
+
+    private Long articleId;
+    private Long userId;
+}

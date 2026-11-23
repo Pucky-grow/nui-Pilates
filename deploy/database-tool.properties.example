@@ -1,0 +1,14 @@
+# Separate migrator credentials; actual file 0600. Values remain empty here intentionally.
+url=jdbc:mysql://RDS_PRIVATE_HOST:3306/pilates_staging?sslMode=VERIFY_IDENTITY&serverTimezone=Asia/Shanghai
+database=pilates_staging
+user=
+password=
+bootstrap.username=
+bootstrap.name=
+# Provision mode only with a separately authorized account administrator:
+runtime.username=pilates_runtime
+runtime.password=
+runtime.host=ECS_PRIVATE_IP
+migrator.username=pilates_migrator
+migrator.password=
+migrator.host=OPERATIONS_PRIVATE_IP

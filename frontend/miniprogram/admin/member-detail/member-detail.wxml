@@ -1,0 +1,81 @@
+<view class="page">
+  <view wx:if="{{error}}" class="error">{{error}}<text bindtap="load">　重试</text></view>
+
+  <block wx:if="{{member.id}}">
+    <view class="card">
+      <view class="member-heading">
+        <view class="title">{{memberName}}</view>
+        <text class="member-badge">{{memberStatus}}</text>
+      </view>
+      <view wx:if="{{member.memberNo}}" class="admin-caption member-number">会员编号 {{member.memberNo}}</view>
+      <view wx:if="{{levelName}}" class="admin-caption">{{levelName}}</view>
+      <view wx:if="{{member.totalSessions != null}}" class="member-sessions">
+        <text class="admin-caption">系统预约已完成</text>
+        <text class="sessions-value">{{member.totalSessions}} 次</text>
+      </view>
+    </view>
+
+    <view class="card">
+      <view class="member-heading">
+        <view class="title">会员档案</view>
+        <button class="admin-action quiet" disabled="{{busy || uploading || bindingBusy}}" bindtap="toggleProfile">
+          {{profileOpen ? '收起' : canEdit ? '编辑资料' : '查看资料'}}
+        </button>
+      </view>
+      <view wx:if="{{studioLedger}}" class="member-binding">
+        <view class="binding-status">
+          <view>微信绑定</view>
+          <text wx:if="{{bindingStatusLoading}}" class="admin-caption">正在读取…</text>
+          <text wx:elif="{{wechatBound === true}}" class="member-badge">已绑定</text>
+          <text wx:elif="{{wechatBound === false}}" class="admin-caption">{{memberActive ? '未绑定' : '未绑定 · 当前状态暂不可绑定'}}</text>
+          <text wx:else class="admin-caption">{{bindingStatusFailed ? '状态读取失败' : '正在读取…'}}</text>
+        </view>
+        <button wx:if="{{wechatBound === false && memberActive}}" class="admin-action secondary" disabled="{{busy || uploading || bindingBusy || bindingStatusLoading}}" bindtap="toggleBinding">
+          {{bindingOpen ? '收起绑定' : '绑定微信'}}
+        </button>
+        <button wx:elif="{{bindingStatusFailed}}" class="admin-action secondary" disabled="{{busy || bindingStatusLoading}}" bindtap="refreshBindingStatus">重试读取</button>
+      </view>
+      <view wx:if="{{bindingOpen}}" class="binding-panel">
+        <view wx:if="{{bindingError}}" class="error">{{bindingError}}</view>
+        <view class="admin-caption">把邀请码发给会员。会员在登录页或「我的 → 账户」提交申请，再向门店出示本人核对码。</view>
+        <view wx:if="{{bindingInvite}}" class="binding-invitation">
+          <view class="binding-status">
+            <text class="member-badge">{{bindingInvite.state === 'REQUESTED' ? '待门店确认' : '待会员申请'}}</text>
+            <text class="admin-caption">有效至 {{bindingInvite.expiresText}}</text>
+          </view>
+          <view wx:if="{{inviteCode}}" class="invite-code"><text selectable>{{inviteCode}}</text></view>
+        </view>
+        <management-form wx:if="{{bindingInvite.state === 'REQUESTED'}}" fields="{{bindingFields}}" value="{{bindingForm}}"
+          disabled="{{bindingBusy || busy || uploading}}" bindchange="changeBinding"/>
+        <view class="actions">
+          <button wx:if="{{bindingLoaded && !bindingInvite}}" class="admin-action primary" disabled="{{bindingBusy || busy || uploading}}" bindtap="issueInvite">生成邀请码</button>
+          <button wx:elif="{{inviteCode}}" class="admin-action primary" disabled="{{bindingBusy}}" bindtap="copyInvite">复制邀请码</button>
+          <button wx:elif="{{bindingInvite.state === 'ISSUED'}}" class="admin-action secondary" disabled="{{bindingBusy || busy || uploading}}" bindtap="issueInvite">重新生成邀请码</button>
+          <button wx:elif="{{bindingInvite.state === 'REQUESTED'}}" class="admin-action primary" disabled="{{bindingBusy || busy || uploading}}" bindtap="approveInvite">确认绑定</button>
+          <button class="admin-action quiet" loading="{{bindingBusy}}" disabled="{{bindingBusy || busy || uploading}}" bindtap="refreshInvites">刷新申请</button>
+          <button wx:if="{{bindingInvite}}" class="admin-action quiet revoke-invite" disabled="{{bindingBusy || busy || uploading}}" bindtap="revokeInvite">撤销邀请</button>
+        </view>
+      </view>
+      <block wx:if="{{profileOpen}}">
+        <management-form fields="{{fields}}" value="{{form}}" disabled="{{!canEdit || busy || uploading || bindingBusy}}" bindchange="change" binduploadstate="onUploadState"/>
+        <view wx:if="{{uploading}}" class="admin-caption">头像处理中，请等待上传完成。</view>
+        <view wx:if="{{canEdit}}" class="actions">
+          <button class="admin-action primary" loading="{{busy}}" disabled="{{busy || uploading || bindingBusy}}" bindtap="save">保存会员资料</button>
+          <button wx:if="{{form.validUntil}}" class="admin-action secondary" disabled="{{busy || uploading || bindingBusy}}" bindtap="clearDate">清除有效期</button>
+        </view>
+      </block>
+    </view>
+
+    <view class="card member-operations">
+      <view wx:if="{{studioLedger}}" class="operation-row">
+        <button class="admin-action primary" bindtap="ledger">打开会员账本</button>
+        <view class="admin-caption">补录历史课、登记充值退款、查看余额流水</view>
+      </view>
+      <view class="operation-row">
+        <button class="admin-action {{studioLedger ? 'secondary' : 'primary'}}" bindtap="bookings">查看系统预约记录</button>
+        <view class="admin-caption">系统内的预约、签到和完课。<text wx:if="{{studioLedger}}">线下补录请看会员账本的「历史课程」。</text></view>
+      </view>
+      <button wx:if="{{canBook}}" class="admin-action secondary" bindtap="book">代会员预约</button>
+    </view>
+  </block>
+</view>

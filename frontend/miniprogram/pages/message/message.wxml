@@ -1,0 +1,9 @@
+<view class="page">
+  <view wx:if="{{!messages.length}}" class="empty">暂无消息</view>
+  <view class="card" wx:for="{{messages}}" wx:key="id" bindtap="read" data-id="{{item.id}}">
+    <view class="m-head"><text class="{{item.isRead==1?'read':''}}">{{item.title}}</text><text class="muted">{{item.isRead==1?'已读':'未读'}}</text></view>
+    <view class="muted">{{item.content}}</view>
+    <view wx:if="{{item.bizType === 'SCHEDULE_CHANGE' || item.bizType === 'COURSE_CANCELLED'}}">查看预约详情 ›</view>
+    <view class="muted small">{{item.createdAt}}</view>
+  </view>
+</view>

@@ -1,0 +1,19 @@
+<view class="page" wx:if="{{studio}}">
+  <view class="card center">
+    <view class="brand">{{studio.name}}</view>
+    <view class="muted">{{studio.slogan}}</view>
+  </view>
+  <view class="card" wx:if="{{studio.intro}}">
+    <view class="section-title">门店介绍</view>
+    <view class="intro">{{studio.intro}}</view>
+  </view>
+  <view class="card">
+    <view class="row"><text>营业时间</text><text>{{studio.hours}}</text></view>
+    <view class="row"><text>联系电话</text><text bindtap="call">{{studio.phone}}</text></view>
+    <view class="row"><text>工作室地址</text><text>{{studio.address}}</text></view>
+  </view>
+  <view class="footer">
+    <button class="btn-primary" bindtap="navigate">一键导航</button>
+    <button class="btn-plain" bindtap="contact">联系客服</button>
+  </view>
+</view>

@@ -1,0 +1,14 @@
+{
+  "description": "优仪普拉提小程序",
+  "projectname": "yoyi-pilates",
+  "appid": "wxd9bd556ad0c77104",
+  "compileType": "miniprogram",
+  "libVersion": "2.33.0",
+  "setting": {
+    "urlCheck": true,
+    "es6": true,
+    "enhance": true,
+    "postcss": true,
+    "minified": true
+  }
+}

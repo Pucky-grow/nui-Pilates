@@ -1,0 +1,61 @@
+<view class="page">
+  <view wx:if="{{!loggedIn}}" class="card">
+    <view class="section-title">教练登录</view>
+    <form bindsubmit="onLogin">
+      <input name="username" class="input" placeholder="账号(如 coach01)" />
+      <input name="password" class="input" password placeholder="密码" />
+      <button form-type="submit" class="btn-primary">登录</button>
+    </form>
+  </view>
+  <block wx:else>
+    <view class="head">你好，{{coachName}}</view>
+
+    <!-- 今日概览 -->
+    <view wx:if="{{stats}}" class="card stats">
+      <view class="stat"><text class="n">{{stats.todayCourseCount}}</text><text class="muted">今日课程</text></view>
+      <view class="stat"><text class="n">{{stats.todayUpcoming}}</text><text class="muted">待上课</text></view>
+      <view class="stat"><text class="n">{{stats.todayFinished}}</text><text class="muted">已完成</text></view>
+      <view class="stat"><text class="n">{{stats.todayStudentCount}}</text><text class="muted">今日学员</text></view>
+      <view class="stat"><text class="n">{{stats.pendingRecords}}</text><text class="muted">待填记录</text></view>
+    </view>
+
+    <view class="card" bindtap="goSchedule">
+      <view class="section-title">我的排课</view>
+      <view class="muted">点击查看全部排课 ›</view>
+    </view>
+    <view wx:if="{{canHandleLateFees}}" class="card" bindtap="goLateFees">
+      <view class="section-title">临时取消费</view>
+      <view class="muted">处理本人排课的取消费 ›</view>
+    </view>
+    <view class="card" bindtap="goLeave">
+      <view class="section-title">我的请假</view>
+      <view class="muted">提交请假 / 查看审批状态 ›</view>
+    </view>
+    <view class="card" bindtap="goChange">
+      <view class="section-title">调课申请</view>
+      <view class="muted">申请更换时间 / 教练 / 教室 ›</view>
+    </view>
+    <view class="card" bindtap="goCourses">
+      <view class="section-title">课程中心</view>
+      <view class="muted">我的课程 / 课程申请 / 申请授课 ›</view>
+    </view>
+
+    <view class="section-title">今日课程</view>
+    <view wx:if="{{stats && !stats.todayCourses.length}}" class="empty">今日暂无课程</view>
+    <view class="card" wx:for="{{stats.todayCourses}}" wx:key="scheduleId" bindtap="goStudents" data-id="{{item.scheduleId}}">
+      <view class="s-head"><text class="s-time">{{item.startTime}} - {{item.endTime}}</text><text>{{item.status}}</text></view>
+      <view class="muted">预约 {{item.bookedCount}} · 已签到 {{item.signedInCount}} · 待签到 {{item.pendingSignin}}</view>
+    </view>
+    <view class="section-title">待填写训练记录</view>
+    <view wx:if="{{!pending.length}}" class="empty">暂无待填写记录</view>
+    <view class="card" wx:for="{{pending}}" wx:key="id" bindtap="goStudents" data-id="{{item.scheduleId}}">
+      <view>预约 #{{item.id}} 待填写</view>
+    </view>
+    <view class="section-title">微信绑定</view>
+    <view class="card">
+      <view class="muted">绑定微信后, 可直接用微信一键登录教练工作台</view>
+      <button class="btn-primary bind-btn" bindtap="bindWechat">绑定微信</button>
+      <button class="btn-plain bind-btn" bindtap="unbindWechat">解绑微信</button>
+    </view>
+  </block>
+</view>

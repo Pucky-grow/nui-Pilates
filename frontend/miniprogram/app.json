@@ -1,0 +1,128 @@
+{
+  "pages": [
+    "pages/login/login",
+    "pages/agreement/agreement",
+    "pages/privacy/privacy",
+    "pages/index/index",
+    "pages/course/course",
+    "pages/booking/booking",
+    "pages/profile/profile",
+    "pages/studio-ledger/studio-ledger",
+    "pages/offline-claim/offline-claim",
+    "pages/course-detail/course-detail",
+    "pages/coach-list/coach-list",
+    "pages/coach-detail/coach-detail",
+    "pages/package-list/package-list",
+    "pages/package-detail/package-detail",
+    "pages/order-list/order-list",
+    "pages/order-detail/order-detail",
+    "pages/booking-confirm/booking-confirm",
+    "pages/booking-detail/booking-detail",
+    "pages/private-booking/private-booking",
+    "pages/checkin/checkin",
+    "pages/training/training",
+    "pages/assessment/assessment",
+    "pages/review/review",
+    "pages/article/article",
+    "pages/article-detail/article-detail",
+    "pages/message/message",
+    "pages/coupon/coupon",
+    "pages/points/points",
+    "pages/feedback/feedback",
+    "pages/invite/invite",
+    "pages/about/about"
+  ],
+  "subpackages": [
+    {
+      "root": "coach-end",
+      "name": "coach",
+      "pages": [
+        "dashboard/dashboard",
+        "schedule/schedule",
+        "schedule-create/schedule-create",
+        "students/students",
+        "student-detail/student-detail",
+        "training/training",
+        "leave/leave",
+        "change-request/change-request",
+        "courses/courses",
+        "course-edit/course-edit",
+        "course-proposals/course-proposals",
+        "course-proposal-edit/course-proposal-edit"
+      ]
+    },
+    {
+      "root": "admin",
+      "name": "admin",
+      "pages": [
+        "home/home",
+        "studio/studio",
+        "banners/banners",
+        "banner-edit/banner-edit",
+        "hot-courses/hot-courses",
+        "team-coaches/team-coaches",
+        "proposals/proposals",
+        "coaches/coaches",
+        "coach-edit/coach-edit",
+        "course-edit/course-edit",
+        "bookings/bookings",
+        "schedules/schedules",
+        "booking-detail/booking-detail",
+        "courses/courses",
+        "logs/logs",
+        "booking-edit/booking-edit",
+        "classrooms/classrooms",
+        "schedule-edit/schedule-edit",
+        "rules/rules",
+        "members/members",
+        "studio-ledger/studio-ledger",
+        "late-fees/late-fees",
+        "member-detail/member-detail",
+        "categories/categories",
+        "reviews/reviews",
+        "qualifications/qualifications",
+        "accounts/accounts"
+      ]
+    }
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#FAF7F2",
+    "navigationBarTitleText": "优仪普拉提",
+    "navigationBarTextStyle": "black"
+  },
+  "tabBar": {
+    "color": "#9A8F82",
+    "selectedColor": "#7A8B6F",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页",
+        "iconPath": "assets/tabbar/home.png",
+        "selectedIconPath": "assets/tabbar/home-active.png"
+      },
+      {
+        "pagePath": "pages/course/course",
+        "text": "课程",
+        "iconPath": "assets/tabbar/course.png",
+        "selectedIconPath": "assets/tabbar/course-active.png"
+      },
+      {
+        "pagePath": "pages/booking/booking",
+        "text": "预约",
+        "iconPath": "assets/tabbar/booking.png",
+        "selectedIconPath": "assets/tabbar/booking-active.png"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的",
+        "iconPath": "assets/tabbar/profile.png",
+        "selectedIconPath": "assets/tabbar/profile-active.png"
+      }
+    ]
+  },
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

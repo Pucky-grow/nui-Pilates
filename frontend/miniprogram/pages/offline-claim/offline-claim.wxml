@@ -1,0 +1,14 @@
+<view class="page">
+  <view class="card" wx:if="{{!proof}}">
+    <view>绑定后可以查看本人的历史课程、预约和余额。</view>
+    <input class="invite" placeholder="粘贴门店发来的邀请码" value="{{inviteCode}}" maxlength="32" disabled="{{busy}}" bindinput="onInput"/>
+    <view class="error" wx:if="{{error}}">{{error}}</view>
+    <button class="btn-primary" loading="{{busy}}" disabled="{{busy}}" bindtap="submit">申请绑定微信</button>
+  </view>
+  <view class="card" wx:else>
+    <view>请把本人核对码发给门店。门店确认后，{{fromProfile ? '刷新账号' : '使用微信登录'}}即可查看原线下档案。</view>
+    <view class="proof"><text selectable>{{proof}}</text></view>
+    <view class="error" wx:if="{{error}}">{{error}}</view>
+    <button class="btn-primary" loading="{{busy}}" disabled="{{busy}}" bindtap="finish">{{fromProfile ? '门店已确认，刷新账号' : '返回微信登录'}}</button>
+  </view>
+</view>

@@ -1,0 +1,31 @@
+<view class="page">
+  <view wx:if="{{error}}" class="card">{{error}} <button bindtap="load">重试</button></view>
+  <view class="card">
+    <view class="section-title">门店名称 <text class="req">*</text></view>
+    <input class="input" value="{{info.name}}" data-k="name" bindinput="onInput" placeholder="门店名称" />
+
+    <view class="section-title">门店标语</view>
+    <input class="input" value="{{info.slogan}}" data-k="slogan" bindinput="onInput" placeholder="让身体回到更舒展的状态" />
+
+    <view class="section-title">门店介绍</view>
+    <textarea class="input-area" value="{{info.intro}}" data-k="intro" bindinput="onInput" maxlength="500" placeholder="门店介绍" />
+    <view class="counter">{{introLen}}/500</view>
+
+    <view class="section-title">联系电话 <text class="req">*</text></view>
+    <input class="input" value="{{info.phone}}" data-k="phone" bindinput="onInput" placeholder="手机号或固话" />
+
+    <view class="section-title">门店地址 <text class="req">*</text></view>
+    <input class="input" value="{{info.address}}" data-k="address" bindinput="onInput" placeholder="门店地址" />
+
+    <view class="section-title">营业时间</view>
+    <view class="time-row">
+      <picker mode="time" value="{{startTime}}" bindchange="onStart"><view class="picker">{{startTime || '开始'}}</view></picker>
+      <text>至</text>
+      <picker mode="time" value="{{endTime}}" bindchange="onEnd"><view class="picker">{{endTime || '结束'}}</view></picker>
+    </view>
+  </view>
+
+  <view class="footer">
+    <button class="btn-primary" disabled="{{submitting || loading || error}}" bindtap="submit">{{submitting ? '保存中…' : '保存'}}</button>
+  </view>
+</view>

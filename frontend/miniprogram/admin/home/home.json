@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "管理工作台",
+  "enablePullDownRefresh": true,
+  "usingComponents": {
+    "management-form": "../components/management-form/index"
+  }
+}

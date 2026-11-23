@@ -1,0 +1,23 @@
+<view class="page">
+  <view class="head">
+    <button class="btn-primary" bindtap="goCreate">+ 创建排课</button>
+  </view>
+  <scroll-view scroll-x class="filter-bar">
+    <view class="fb-item {{rangeIndex==index?'on':''}}" wx:for="{{ranges}}" wx:key="key" bindtap="onRange" data-i="{{index}}">{{item.label}}</view>
+  </scroll-view>
+  <view class="date-picker">
+    <picker mode="date" value="{{fromDate}}" bindchange="onDate">
+      <view class="picker">{{fromDate}} 起（点此选具体日期）</view>
+    </picker>
+  </view>
+
+  <view wx:if="{{loading}}" class="empty">加载中…</view>
+  <view wx:elif="{{error}}" class="empty" bindtap="load">{{error}} · 点击重试</view>
+  <view wx:elif="{{!schedules.length}}" class="empty">该时间段暂无排课</view>
+  <view class="card" wx:for="{{schedules}}" wx:key="id" bindtap="goStudents" data-id="{{item.id}}">
+    <view class="s-head"><text class="s-name">{{item.courseName}}</text><text class="st">{{item.status}}</text></view>
+    <view class="s-date">{{item.courseDate}} {{item.startTime}} - {{item.endTime}}</view>
+    <view class="muted">{{item.bookedCount}}/{{item.maxCapacity}}人</view>
+    <view wx:if="{{item.status=='SCHEDULED'}}" class="btn-plain cancel-btn" catchtap="cancel" data-id="{{item.id}}">取消排课</view>
+  </view>
+</view>

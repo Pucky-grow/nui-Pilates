@@ -1,0 +1,21 @@
+<view class="page">
+  <view class="section-title">我的可授课课程</view>
+  <view wx:if="{{!myCourses.length}}" class="empty">暂无授课资格课程</view>
+  <view class="card" wx:for="{{myCourses}}" wx:key="courseId">
+    <view class="c-head"><text class="c-name">{{item.courseName}}</text><text class="st">{{item.status=='APPROVED'?'已获资格':item.status}}</text></view>
+    <view class="muted">{{item.courseType}} · {{item.qualificationSource=='APPLY'?'申请获得':'课程方案'}}</view>
+    <view wx:if="{{item.status=='APPROVED'}}" class="btn-plain apply-btn" bindtap="editDisplay" data-id="{{item.courseId}}">编辑展示信息</view>
+  </view>
+
+  <view class="section-title">申请教授其他课程</view>
+  <view class="card" wx:for="{{allCourses}}" wx:key="id">
+    <view class="c-head"><text class="c-name">{{item.name}}</text></view>
+    <view class="muted">{{item.type}} · {{item.difficulty}}</view>
+    <view class="btn-plain apply-btn" bindtap="apply" data-id="{{item.id}}">申请成为授课教练</view>
+  </view>
+
+  <view class="card" bindtap="goProposals">
+    <view class="section-title">我的课程方案申请</view>
+    <view class="muted">查看草稿/审核中/已通过/已驳回 ›</view>
+  </view>
+</view>

@@ -1,0 +1,4 @@
+{
+  "desc": "优仪普拉提",
+  "rules": [{ "action": "allow", "page": "*" }]
+}

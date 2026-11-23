@@ -1,0 +1,26 @@
+<view class="page">
+  <view wx:if="{{originalSummary}}" class="card">原排课：{{originalSummary}}</view>
+  <view wx:if="{{error}}" class="error">
+    {{error}}
+    <text bindtap="load">
+      　重试
+    </text>
+  </view>
+  <view class="hint">
+    {{managementReason}}
+  </view>
+  <view class="card">
+    <management-form fields="{{fields}}" value="{{form}}" disabled="{{busy || !canEdit}}" bindchange="change"/>
+    <view class="actions">
+      <button wx:if="{{canEdit}}" class="admin-action primary" disabled="{{busy}}" bindtap="save">
+        保存排课场次
+      </button>
+      <button wx:if="{{id}}" class="admin-action secondary" bindtap="students">
+        查看预约名单
+      </button>
+      <button wx:if="{{canCancel}}" class="admin-action danger" disabled="{{busy}}" bindtap="cancel">
+        取消整场排课
+      </button>
+    </view>
+  </view>
+</view>

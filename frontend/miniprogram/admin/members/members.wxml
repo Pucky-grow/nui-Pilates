@@ -1,0 +1,21 @@
+<view class="page">
+  <view wx:if="{{error}}" class="error">{{error}}<text bindtap="load">　重试</text></view>
+  <view class="card">
+    <view class="toolbar member-search">
+      <input placeholder="会员编号、姓名或手机号" value="{{keyword}}" bindinput="onInput" confirm-type="search" bindconfirm="load"/>
+      <button class="admin-action secondary" disabled="{{busy}}" bindtap="load">查找会员</button>
+    </view>
+    <button wx:if="{{ledgerStatus === 'ready'}}" class="admin-action primary" bindtap="createOffline">新建线下会员</button>
+    <view wx:elif="{{ledgerStatus === 'unavailable'}}" class="admin-caption">暂时无法确认能否新建线下会员<text bindtap="checkLedger">　重试</text></view>
+  </view>
+  <view class="card" wx:for="{{list}}" wx:key="id" data-id="{{item.id}}" bindtap="open">
+    <view class="member-row">
+      <view class="title">{{item.nickname || '未填写昵称'}}</view>
+      <text class="admin-caption">{{item.statusLabel}}　›</text>
+    </view>
+    <view>{{item.phone || '未登记手机号'}} <text wx:if="{{item.levelName}}">· {{item.levelName}}</text></view>
+    <view class="admin-caption">{{item.member.memberNo}}</view>
+  </view>
+  <button wx:if="{{list.length < total}}" loading="{{busy}}" disabled="{{busy}}" bindtap="more">加载更多（{{list.length}} / {{total}}）</button>
+  <view wx:if="{{!list.length && !busy && !error}}" class="empty">暂无符合条件的会员</view>
+</view>

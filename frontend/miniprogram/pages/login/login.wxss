@@ -1,0 +1,31 @@
+.login-page { padding: 24rpx; }
+.hero { text-align: center; padding: 70rpx 0 50rpx; }
+.brand { font-size: 52rpx; font-weight: 700; color: var(--text); }
+.slogan { color: var(--text-light); font-size: 28rpx; margin-top: 12rpx; }
+
+.wx-btn { width: 100%; }
+
+.agreement { display: flex; align-items: center; justify-content: center; margin: 24rpx 0 30rpx; }
+.checkbox { width: 30rpx; height: 30rpx; border: 2rpx solid var(--line); border-radius: 50%; margin-right: 10rpx; flex-shrink: 0; }
+.checkbox.checked { background: var(--sage-deep); border-color: var(--sage-deep); }
+.agree-text { font-size: 22rpx; color: var(--text-light); }
+.link { color: var(--sage-deep); }
+
+.staff { margin-top: 20rpx; }
+.staff-toggle { text-align: center; font-size: 28rpx; color: var(--text-light); padding: 16rpx 0; }
+.staff-form { padding: 24rpx; margin-top: 12rpx; }
+.sub { font-size: 22rpx; margin-bottom: 16rpx; display: block; }
+.input { border: 2rpx solid var(--line); border-radius: 12rpx; padding: 18rpx; margin-bottom: 20rpx; }
+.login-btn { margin-top: 8rpx; }
+
+/* 完善资料弹层 */
+.profile-mask { position: fixed; left: 0; top: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); z-index: 999; display: flex; align-items: flex-end; }
+.profile-panel { width: 100%; background: #fff; border-radius: 24rpx 24rpx 0 0; padding: 40rpx 40rpx 60rpx; box-sizing: border-box; }
+.pp-title { font-size: 36rpx; font-weight: 700; text-align: center; }
+.pp-sub { text-align: center; color: var(--text-light); font-size: 24rpx; margin: 12rpx 0 32rpx; }
+.avatar-btn { width: 160rpx; height: 160rpx; margin: 0 auto 24rpx; padding: 0; background: transparent; border: none; }
+.avatar-btn::after { border: none; }
+.pp-avatar { width: 160rpx; height: 160rpx; border-radius: 50%; background: var(--line); display: flex; align-items: center; justify-content: center; color: var(--text-light); font-size: 28rpx; }
+.pp-input { border: 2rpx solid var(--line); border-radius: 12rpx; padding: 20rpx; margin-bottom: 32rpx; }
+.pp-save { width: 100%; }
+.pp-skip { text-align: center; color: var(--text-light); font-size: 26rpx; padding: 24rpx 0 8rpx; }

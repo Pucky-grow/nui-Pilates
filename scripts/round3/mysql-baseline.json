@@ -1,0 +1,15 @@
+{
+  "version": "8.0.46",
+  "image": "mysql:8.0.46@sha256:7dcddc01f13bab2f15cde676d44d01f61fc9f99fe7785e86196dfc07d358ae2b",
+  "registryResolvedOn": "2026-10-15",
+  "charset": "utf8mb4",
+  "collation": "utf8mb4_general_ci",
+  "sqlMode": "ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION",
+  "isolation": "REPEATABLE-READ",
+  "timeZone": "+08:00",
+  "studioTimeZone": "Asia/Shanghai",
+  "macArchive": "https://cdn.mysql.com/Downloads/MySQL-8.0/mysql-8.0.46-macos15-arm64.tar.gz",
+  "macArchiveSha256": "6ca4a361a45f5019fbf6d500997986b4aaf6f0e30ff9c41179d1e8ecd635f3db",
+  "source": "https://dev.mysql.com/downloads/mysql/8.0.html",
+  "note": "Round3 固定验收基线；不是对真实业务服务器当前版本的声明。Linux 容器镜像尚需部署平台演练。"
+}

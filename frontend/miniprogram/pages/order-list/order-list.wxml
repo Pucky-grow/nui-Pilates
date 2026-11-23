@@ -1,0 +1,8 @@
+<view class="page">
+  <view wx:if="{{!orders.length}}" class="empty">暂无订单</view>
+  <view class="card" wx:for="{{orders}}" wx:key="id" bindtap="goDetail" data-id="{{item.id}}">
+    <view class="o-head"><text class="o-name">{{item.itemName}}</text><text class="o-status">{{item.status}}</text></view>
+    <view class="muted">{{item.createdAt}}</view>
+    <view class="price">¥{{item.payAmount}}</view>
+  </view>
+</view>

@@ -1,0 +1,36 @@
+<view class="page">
+  <view wx:if="{{error}}" class="error">
+    {{error}}
+    <text bindtap="load">
+      　重试
+    </text>
+  </view>
+  <button wx:if="{{canEdit}}" bindtap="edit">
+    新增
+  </button>
+  <view class="card" wx:for="{{list}}" wx:key="id">
+    <view class="title">
+      {{item.name}}
+    </view>
+    <view>
+      {{item.statusLabel}}
+    </view>
+    <view wx:if="{{item.capacity}}">
+      容量 {{item.capacity}}
+    </view>
+    <button wx:if="{{canEdit}}" data-id="{{item.id}}" bindtap="edit">
+      编辑
+    </button>
+  </view>
+  <view wx:if="{{editing}}" class="card">
+    <management-form fields="{{fields}}" value="{{form}}" bindchange="change" disabled="{{busy}}"/>
+    <view class="actions">
+      <button disabled="{{busy}}" bindtap="save">
+        保存
+      </button>
+      <button bindtap="close">
+        取消
+      </button>
+    </view>
+  </view>
+</view>

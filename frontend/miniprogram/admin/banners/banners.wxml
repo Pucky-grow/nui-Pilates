@@ -1,0 +1,21 @@
+<view class="page">
+  <view wx:if="{{error}}" class="card">{{error}} <button bindtap="load">重试</button></view>
+  <view class="head">
+    <button class="btn-primary" bindtap="add">+ 新增 Banner</button>
+  </view>
+
+  <view wx:if="{{!banners.length}}" class="empty">暂无 Banner</view>
+  <view class="card" wx:for="{{banners}}" wx:key="id">
+    <image wx:if="{{item.imageUrl}}" class="banner-img" src="{{item.imageUrl}}" mode="aspectFill" />
+    <view class="b-head">
+      <view class="b-title">{{item.title || '无标题'}}</view>
+      <text class="st {{item.status=='ACTIVE' ? 'on' : ''}}">{{item.statusText}}</text>
+    </view>
+    <view class="muted">{{item.subtitle}} · 排序{{item.sort}}</view>
+    <view class="row-btns">
+      <view class="btn-plain" bindtap="edit" data-id="{{item.id}}">编辑</view>
+      <view class="btn-plain" bindtap="toggle" data-id="{{item.id}}" data-status="{{item.status}}">{{item.status=='ACTIVE' ? '禁用' : '启用'}}</view>
+      <view class="btn-plain danger" bindtap="del" data-id="{{item.id}}">删除</view>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,2 @@
+.heading { font-weight: 600; }
+.actions { display: flex; gap: 12rpx; margin-top: 12rpx; }

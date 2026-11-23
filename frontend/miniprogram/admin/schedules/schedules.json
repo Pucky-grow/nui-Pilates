@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "课程排班",
+  "enablePullDownRefresh": true,
+  "usingComponents": {
+    "management-form": "../components/management-form/index"
+  }
+}

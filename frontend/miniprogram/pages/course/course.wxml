@@ -1,0 +1,42 @@
+<view class="page">
+  <!-- 日期筛选 -->
+  <scroll-view scroll-x class="filter-bar">
+    <view wx:for="{{days}}" wx:key="label" class="fb-item {{dayIndex==index?'on':''}}"
+          bindtap="onDay" data-i="{{index}}">{{item.label}}</view>
+  </scroll-view>
+  <!-- 时段 -->
+  <view class="filter-bar">
+    <view class="fb-item {{timeOfDay==''?'on':''}}" bindtap="onTime" data-v="">全部</view>
+    <view class="fb-item {{timeOfDay=='MORNING'?'on':''}}" bindtap="onTime" data-v="MORNING">上午</view>
+    <view class="fb-item {{timeOfDay=='AFTERNOON'?'on':''}}" bindtap="onTime" data-v="AFTERNOON">下午</view>
+    <view class="fb-item {{timeOfDay=='EVENING'?'on':''}}" bindtap="onTime" data-v="EVENING">晚上</view>
+  </view>
+  <!-- 难度 -->
+  <view class="filter-bar">
+    <view class="fb-item {{difficulty==''?'on':''}}" bindtap="onDifficulty" data-v="">全部难度</view>
+    <view class="fb-item {{difficulty=='BEGINNER'?'on':''}}" bindtap="onDifficulty" data-v="BEGINNER">入门</view>
+    <view class="fb-item {{difficulty=='JUNIOR'?'on':''}}" bindtap="onDifficulty" data-v="JUNIOR">初级</view>
+    <view class="fb-item {{difficulty=='INTERMEDIATE'?'on':''}}" bindtap="onDifficulty" data-v="INTERMEDIATE">中级</view>
+    <view class="fb-item {{difficulty=='ADVANCED'?'on':''}}" bindtap="onDifficulty" data-v="ADVANCED">进阶</view>
+  </view>
+
+  <view wx:if="{{loading}}" class="empty">加载中…</view>
+  <view wx:elif="{{error}}" class="empty" bindtap="retry">{{error}}</view>
+  <view wx:elif="{{!schedules.length}}" class="empty">暂时没有符合条件的课程</view>
+
+  <view class="card" wx:for="{{schedules}}" wx:key="id">
+    <view class="sched-head">
+      <text class="sched-name" bindtap="goCourseDetail" data-cid="{{item.courseId}}">{{item.courseName}} ›</text>
+      <text class="tag">{{item.difficulty}}</text>
+    </view>
+    <view class="sched-time">{{item.courseDate}} {{item.startTime}} - {{item.endTime}}</view>
+    <view class="muted">{{item.coachName}} · {{item.classroomName}} · {{item.durationMinutes}}分钟</view>
+    <view wx:if="{{!item.bookable}}" class="muted">{{item.unbookableReason}}</view>
+    <view class="sched-foot">
+      <text class="remain {{item.remaining<=2?'few':''}}">{{item.remaining}}/{{item.maxCapacity}}人 · 剩{{item.remaining}}席</text>
+      <text class="cost">{{bookingMode === 'FREE' ? '免费预约' : '课包预约'}}</text>
+      <button wx:if="{{item.bookable}}" class="btn-primary sched-btn" disabled="{{loading}}" bindtap="goDetail" data-id="{{item.id}}">立即预约</button>
+      <button wx:elif="{{waitlistEnabled && item.bookingStatus === 'FULL'}}" class="btn-plain sched-btn" disabled="{{loading}}" bindtap="goDetail" data-id="{{item.id}}">查看候补</button>
+    </view>
+  </view>
+</view>

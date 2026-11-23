@@ -1,0 +1,12 @@
+<template name="classReadiness">
+  <view wx:if="{{schedule.classroomType === 'MAT'}}">训练形式：垫上</view>
+  <view wx:elif="{{schedule.classroomType === 'REFORMER'}}">训练形式：器械</view>
+  <view wx:if="{{schedule.classroomEquipment}}">教室器材：{{schedule.classroomEquipment}}</view>
+  <view wx:if="{{schedule.difficulty === 'BEGINNER'}}">难度：入门</view>
+  <view wx:elif="{{schedule.difficulty === 'JUNIOR'}}">难度：初级</view>
+  <view wx:elif="{{schedule.difficulty === 'INTERMEDIATE'}}">难度：中级</view>
+  <view wx:elif="{{schedule.difficulty === 'ADVANCED'}}">难度：进阶</view>
+  <view wx:if="{{schedule.targetUsers}}">适合人群：{{schedule.targetUsers}}</view>
+  <view wx:if="{{schedule.trainingFocus}}">训练重点：{{schedule.trainingFocus}}</view>
+  <view wx:if="{{schedule.notices}}">注意事项：{{schedule.notices}}</view>
+</template>

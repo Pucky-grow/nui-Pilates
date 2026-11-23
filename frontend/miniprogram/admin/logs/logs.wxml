@@ -1,0 +1,34 @@
+<view class="page">
+  <view wx:if="{{error}}" class="error">
+    {{error}}
+    <text bindtap="load">
+      　重试
+    </text>
+  </view>
+  <view class="toolbar">
+    <input placeholder="模块：member / booking / schedule / config" bindinput="input"/>
+    <button bindtap="load">
+      查询
+    </button>
+  </view>
+  <view class="card" wx:for="{{list}}" wx:key="id">
+    <view class="title">
+      {{item.module}} · {{item.action}}
+    </view>
+    <view>
+      {{item.operatorName}} · {{item.createdAt}}
+    </view>
+    <view class="hint">
+      目标：{{item.targetId || '—'}}
+    </view>
+    <view>
+      {{item.detail}}
+    </view>
+  </view>
+  <button wx:if="{{list.length < total}}" loading="{{busy}}" disabled="{{busy}}" bindtap="more">
+    加载更多（{{list.length}} / {{total}}）
+  </button>
+  <view wx:if="{{!list.length && !busy && !error}}" class="empty">
+    暂无记录
+  </view>
+</view>

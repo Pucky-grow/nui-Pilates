@@ -1,0 +1,32 @@
+<view class="page">
+  <view wx:if="{{error}}" class="error">
+    {{error}}
+  </view>
+  <view class="toolbar">
+    <input placeholder="教练姓名" bindinput="input"/>
+    <button bindtap="load">
+      查询
+    </button>
+    <button bindtap="edit">
+      新增教练
+    </button>
+  </view>
+  <view class="card" wx:for="{{list}}" wx:key="id">
+    <image wx:if="{{item.avatar}}" src="{{item.avatar}}" mode="aspectFill" style="width:112rpx;height:112rpx;border-radius:56rpx"/>
+    <view class="title">
+      {{item.name}}
+    </view>
+    <view>
+      {{item.title}} · {{item.statusLabel}}
+    </view>
+    <button data-id="{{item.id}}" bindtap="edit">
+      编辑资料 / 状态
+    </button>
+  </view>
+  <button wx:if="{{list.length < total}}" bindtap="more">
+    加载更多
+  </button>
+  <view wx:if="{{!list.length && !busy}}" class="empty">
+    暂无教练
+  </view>
+</view>

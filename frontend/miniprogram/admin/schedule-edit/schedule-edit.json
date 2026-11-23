@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "排课详情",
+  "enablePullDownRefresh": true,
+  "usingComponents": {
+    "management-form": "../components/management-form/index"
+  }
+}

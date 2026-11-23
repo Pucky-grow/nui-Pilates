@@ -1,0 +1,26 @@
+<view class="page">
+  <view wx:if="{{error}}" class="error">
+    {{error}}
+    <text bindtap="load">
+      　重试
+    </text>
+  </view>
+  <view class="card">
+    <picker range="{{coaches}}" range-key="name" value="{{selected}}" bindchange="select">
+      <view class="date">
+        {{coaches[selected].name || '暂无启用教练'}}
+      </view>
+    </picker>
+    <button disabled="{{busy}}" bindtap="assign">
+      指派 / 恢复当前课程资格
+    </button>
+  </view>
+  <view class="card" wx:for="{{list}}" wx:key="id">
+    <view>
+      {{item.name}} · {{item.statusLabel}}
+    </view>
+    <button wx:if="{{item.status === 'APPROVED'}}" data-id="{{item.coachId}}" disabled="{{busy}}" bindtap="disable">
+      停用资格
+    </button>
+  </view>
+</view>

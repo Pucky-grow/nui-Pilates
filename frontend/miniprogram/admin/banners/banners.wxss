@@ -1,0 +1,9 @@
+.head { margin-bottom: 20rpx; }
+.banner-img { width: 100%; height: 240rpx; border-radius: 12rpx; margin-bottom: 12rpx; }
+.b-head { display: flex; justify-content: space-between; align-items: center; }
+.b-title { font-size: 30rpx; font-weight: 600; margin-bottom: 4rpx; }
+.st { font-size: 22rpx; color: var(--text-light); padding: 2rpx 12rpx; border-radius: 8rpx; background: #F1ECE3; }
+.st.on { color: var(--sage-deep); background: #EFF3EC; }
+.row-btns { display: flex; gap: 16rpx; margin-top: 16rpx; }
+.row-btns .btn-plain { flex: 1; text-align: center; }
+.danger { color: var(--danger); }

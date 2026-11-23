@@ -1,0 +1,29 @@
+server:
+  # 本机 8080 被其他服务占用, 开发环境固定跑 8090(需与小程序 baseUrl 一致)
+  port: 8090
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${MYSQL_HOST:127.0.0.1}:${MYSQL_PORT:3306}/yoyi_pilates?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+    username: ${MYSQL_USER:root}
+    password: ${MYSQL_PASSWORD:root}
+  data:
+    redis:
+      host: ${REDIS_HOST:127.0.0.1}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: 0
+      timeout: 5000
+
+logging:
+  level:
+    com.yoyi.pilates: debug
+
+yoyi:
+  wx:
+    mock-login: ${WX_MOCK_LOGIN:true}
+  pay:
+    mock-enabled: ${PAY_MOCK_ENABLED:true}
+  sms:
+    mock-enabled: ${SMS_MOCK_ENABLED:true}

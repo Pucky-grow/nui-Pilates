@@ -1,0 +1,24 @@
+<view class="page">
+  <block wx:if="{{mode=='create'}}">
+    <view class="card">
+      <view class="section-title">课程评分</view>
+      <slider value="{{score}}" min="1" max="5" show-value bindchange="onScore" />
+      <view class="section-title">教练评分</view>
+      <slider value="{{coachScore}}" min="1" max="5" show-value bindchange="onCoach" />
+      <view class="section-title">环境评分</view>
+      <slider value="{{envScore}}" min="1" max="5" show-value bindchange="onEnv" />
+    </view>
+    <view class="card">
+      <view class="section-title">评价内容</view>
+      <textarea class="content" placeholder="写下你的课程体验…" bindinput="onContent" />
+    </view>
+    <view class="footer"><button class="btn-primary" bindtap="submit">提交评价</button></view>
+  </block>
+  <block wx:else>
+    <view wx:if="{{!mine.length}}" class="empty">暂无评价</view>
+    <view class="card" wx:for="{{mine}}" wx:key="id">
+      <view class="r-score">课程★{{item.courseScore}} 教练★{{item.coachScore}} 环境★{{item.envScore}}</view>
+      <view>{{item.content}}</view>
+    </view>
+  </block>
+</view>

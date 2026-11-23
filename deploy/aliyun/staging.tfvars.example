@@ -1,0 +1,19 @@
+# NON-SECRET PLACEHOLDERS. No apply has been authorized.
+name = "pilates-staging"
+region = "REGION_REQUIRED"
+zone_id = "ZONE_REQUIRED"
+vpc_cidr = "10.70.0.0/16"
+subnet_cidr = "10.70.1.0/24"
+allowed_test_cidr = "192.0.2.1/32"
+operations_cidr = "192.0.2.1/32"
+bucket_name = "UNIQUE_TEST_BUCKET_REQUIRED"
+ecs_instance_type = "APPROVED_SKU_REQUIRED"
+ecs_image_id = "APPROVED_LINUX_IMAGE_REQUIRED"
+existing_ssh_key_name = "EXISTING_KEY_REFERENCE_REQUIRED"
+internet_bandwidth_mbps = 0
+rds_engine_version = "VERSION_REVIEW_REQUIRED"
+rds_lifecycle_approved = false
+rds_instance_type = "APPROVED_SKU_REQUIRED"
+rds_storage_gb = 20
+redis_instance_class = "APPROVED_SKU_REQUIRED"
+redis_engine_version = "VERSION_REVIEW_REQUIRED"

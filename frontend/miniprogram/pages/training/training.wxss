@@ -1,0 +1,5 @@
+.stats { display: flex; }
+.stat { flex: 1; text-align: center; display: flex; flex-direction: column; gap: 4rpx; }
+.stat .n { font-size: 40rpx; font-weight: 700; color: var(--sage-deep); }
+.t-head { display: flex; justify-content: space-between; font-weight: 600; }
+.training-notes { white-space: pre-wrap; }

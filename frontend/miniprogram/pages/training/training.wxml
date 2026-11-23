@@ -1,0 +1,17 @@
+<view class="page">
+  <view class="card stats" wx:if="{{stats}}">
+    <view class="stat"><text class="n">{{stats.totalCount}}</text><text class="muted">累计训练</text></view>
+    <view class="stat"><text class="n">{{stats.totalMinutes}}</text><text class="muted">累计分钟</text></view>
+    <view class="stat"><text class="n">{{stats.monthCount}}</text><text class="muted">本月</text></view>
+    <view class="stat"><text class="n">{{stats.streakDays}}</text><text class="muted">连续天数</text></view>
+  </view>
+
+  <view wx:if="{{!records.length}}" class="empty">暂无训练记录</view>
+  <view class="card" wx:for="{{records}}" wx:key="id">
+    <view class="t-head"><text>{{item.trainingDate}}</text><text class="muted">{{item.intensity}}</text></view>
+    <view class="muted">目标: {{item.goal}}</view>
+    <view class="training-notes">{{item.content}}</view>
+    <view class="muted">身体反馈: {{item.feedback}}</view>
+    <view class="muted training-notes">下次建议: {{item.suggestion}}</view>
+  </view>
+</view>

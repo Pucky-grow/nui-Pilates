@@ -1,0 +1,20 @@
+<view class="page">
+  <view class="card" wx:if="{{trend.length}}">
+    <view class="section-title">身体数据趋势</view>
+    <view class="trend-row" wx:for="{{trend}}" wx:key="id">
+      <text>{{item.measureDate}}</text>
+      <text>{{item.weight}}kg</text>
+      <text>{{item.waist}}cm</text>
+    </view>
+  </view>
+  <view wx:if="{{!assessments.length}}" class="empty">暂无评估记录</view>
+  <view class="card" wx:for="{{assessments}}" wx:key="id">
+    <view class="t-head"><text>{{item.assessDate}}</text></view>
+    <view class="grid">
+      <text>身高 {{item.height}}cm</text><text>体重 {{item.weight}}kg</text><text>体脂 {{item.bodyFatRate}}%</text>
+      <text>腰围 {{item.waist}}cm</text><text>臀围 {{item.hip}}cm</text><text>大腿 {{item.thigh}}cm</text>
+    </view>
+    <view class="muted">体态观察: {{item.headForward}} {{item.roundedShoulder}} {{item.pelvis}}</view>
+    <view class="muted">备注: {{item.remark}}</view>
+  </view>
+</view>

@@ -1,0 +1,9 @@
+<view wx:for="{{rows}}" wx:key="key" class="field">
+  <view class="label">{{item.label}}<text wx:if="{{item.required}}"> *</text></view>
+  <picker wx:if="{{item.type === 'select'}}" disabled="{{disabled || item.readonly}}" range="{{item.options}}" range-key="label" value="{{item.index}}" data-key="{{item.key}}" bindchange="select"><view class="control">{{item.selected}}</view></picker>
+  <picker wx:elif="{{item.type === 'date' || item.type === 'time'}}" disabled="{{disabled || item.readonly}}" mode="{{item.type}}" value="{{item.current}}" data-key="{{item.key}}" bindchange="input"><view class="control">{{item.current || '请选择'}}</view></picker>
+  <textarea wx:elif="{{item.type === 'textarea'}}" class="control area" disabled="{{disabled || item.readonly}}" value="{{item.current}}" maxlength="{{item.maxlength || 2000}}" data-key="{{item.key}}" bindinput="input"/>
+  <view wx:elif="{{item.type === 'image'}}"><image wx:if="{{item.current}}" class="image-preview" mode="aspectFit" src="{{item.current}}" data-key="{{item.key}}" binderror="imageError" bindload="imageLoaded"/><view wx:if="{{imageErrors[item.key]}}" class="hint">图片加载失败，请重新上传</view><input class="control" disabled="{{disabled || item.readonly}}" value="{{item.current}}" placeholder="图片地址或上传图片" data-key="{{item.key}}" bindinput="input"/><button disabled="{{disabled || item.readonly || uploading}}" size="mini" data-key="{{item.key}}" bindtap="image">选择图片</button></view>
+  <input wx:else password="{{item.type === 'password'}}" class="control" disabled="{{disabled || item.readonly}}" value="{{item.current}}" type="{{item.type === 'number' ? 'number' : item.type === 'decimal' ? 'digit' : 'text'}}" maxlength="{{item.maxlength || 255}}" placeholder="{{item.placeholder || ''}}" data-key="{{item.key}}" bindinput="input"/>
+  <view wx:if="{{item.hint}}" class="hint">{{item.hint}}</view>
+</view>

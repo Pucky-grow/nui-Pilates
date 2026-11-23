@@ -1,0 +1,10 @@
+<view class="page">
+  <view class="filter-bar">
+    <view class="fb-item {{categoryId==''?'on':''}}" bindtap="onCategory" data-v="">全部</view>
+    <view class="fb-item {{categoryId==item.id?'on':''}}" wx:for="{{categories}}" wx:key="id" bindtap="onCategory" data-v="{{item.id}}">{{item.name}}</view>
+  </view>
+  <view class="card" wx:for="{{articles}}" wx:key="id" bindtap="goDetail" data-id="{{item.id}}">
+    <view class="a-title">{{item.title}}</view>
+    <view class="muted">{{item.author}} · {{item.views}}阅读 · ♥{{item.likes}}</view>
+  </view>
+</view>

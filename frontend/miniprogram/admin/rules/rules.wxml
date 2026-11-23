@@ -1,0 +1,23 @@
+<view class="page">
+  <view wx:if="{{error}}" class="error">
+    {{error}}
+    <text bindtap="load">
+      　重试
+    </text>
+  </view>
+  <view class="card">
+    <view>
+      预约模式：{{mode}}
+    </view>
+    <view>
+      签到窗口：{{window}}
+    </view>
+    <view class="hint">
+      时区 Asia/Shanghai；签到窗口按现有规则保持固定。
+    </view>
+    <management-form fields="{{fields}}" value="{{form}}" disabled="{{busy}}" bindchange="change"/>
+    <button disabled="{{busy}}" bindtap="save">
+      保存规则
+    </button>
+  </view>
+</view>

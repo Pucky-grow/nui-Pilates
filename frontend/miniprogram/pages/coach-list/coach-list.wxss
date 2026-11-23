@@ -1,0 +1,5 @@
+.coach-row { display: flex; align-items: center; }
+.coach-avatar { width: 110rpx; height: 110rpx; }
+.coach-info { flex: 1; margin-left: 20rpx; }
+.coach-name { font-size: 32rpx; font-weight: 600; }
+.rating { color: var(--brown); font-weight: 600; }

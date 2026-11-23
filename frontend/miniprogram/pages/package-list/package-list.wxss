@@ -1,0 +1,5 @@
+.pkg-head { display: flex; align-items: center; justify-content: space-between; }
+.pkg-name { font-size: 32rpx; font-weight: 600; }
+.pkg-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 20rpx; }
+.pkg-origin { text-decoration: line-through; margin-left: 12rpx; }
+.pkg-btn { font-size: 26rpx; padding: 12rpx 40rpx; }

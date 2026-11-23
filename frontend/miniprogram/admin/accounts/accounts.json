@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "账号与凭据",
+  "usingComponents": {
+    "management-form": "../components/management-form/index"
+  }
+}

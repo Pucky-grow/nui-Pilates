@@ -1,0 +1,25 @@
+<view class="page" wx:if="{{coach}}">
+  <view class="card head">
+    <image wx:if="{{coach.avatar}}" class="avatar big-avatar" src="{{coach.avatar}}" mode="aspectFill" />
+    <view wx:else class="avatar big-avatar coach-avatar-fallback">{{coach.name}}</view>
+    <view class="coach-name">{{coach.name}}</view>
+    <view class="muted">{{coach.title}} · 从业{{coach.years}}年 · ★{{coach.rating}}</view>
+  </view>
+  <view class="card">
+    <view class="section-title">专业方向</view>
+    <view class="tag" wx:for="{{coach.specialties.split(',')}}" wx:key="*this">{{item}}</view>
+  </view>
+  <view class="card">
+    <view class="section-title">个人简介</view>
+    <view>{{coach.bio}}</view>
+  </view>
+  <view class="card" wx:if="{{coach.certificates.length}}">
+    <view class="section-title">认证证书</view>
+    <view class="cert" wx:for="{{coach.certificates}}" wx:key="name">{{item.name}} · {{item.issuer}}</view>
+  </view>
+  <view class="card" wx:if="{{reviews.length}}">
+    <view class="section-title">学员评价</view>
+    <view class="review" wx:for="{{reviews}}" wx:key="id"><text class="r-score">★{{item.coachScore}}</text>{{item.content}}</view>
+  </view>
+  <view class="footer"><button class="btn-primary" bindtap="book">预约私教</button></view>
+</view>

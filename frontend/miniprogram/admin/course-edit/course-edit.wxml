@@ -1,0 +1,15 @@
+<view class="page">
+  <view wx:if="{{error}}" class="error">
+    {{error}}
+    <text bindtap="load">
+      　重试
+    </text>
+  </view>
+  <view class="card">
+    <management-form fields="{{fields}}" value="{{form}}" disabled="{{busy || !canEdit}}" bindchange="change" binduploadstate="onUploadState"/>
+    <view class="actions">
+      <button wx:if="{{canEdit}}" class="admin-action primary" loading="{{busy}}" disabled="{{busy || uploading || !fields.length}}" bindtap="save">保存课程资料</button>
+      <button wx:if="{{id && canDelete && fields.length}}" class="admin-action danger" disabled="{{busy || uploading}}" bindtap="removeCourse">删除目录课程</button>
+    </view>
+  </view>
+</view>

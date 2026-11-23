@@ -1,0 +1,15 @@
+{
+  "version": "2.0",
+  "statement": [
+    {
+      "effect": "allow",
+      "action": ["name/cos:GetBucketACL"],
+      "resource": ["qcs::cos:ap-shanghai:uid/1505023965:yoyi-pilates-test-1505023965/"]
+    },
+    {
+      "effect": "allow",
+      "action": ["name/cos:PutObject", "name/cos:GetObject"],
+      "resource": ["qcs::cos:ap-shanghai:uid/1505023965:yoyi-pilates-test-1505023965/objects/*"]
+    }
+  ]
+}

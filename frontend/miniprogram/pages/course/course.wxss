@@ -1,0 +1,11 @@
+.filter-bar { display: flex; padding: 16rpx 24rpx; gap: 16rpx; white-space: nowrap; overflow-x: auto; }
+.fb-item { padding: 8rpx 26rpx; border-radius: 30rpx; background: #fff; color: var(--text-light); font-size: 24rpx; flex-shrink: 0; }
+.fb-item.on { background: var(--sage); color: #fff; }
+.sched-head { display: flex; justify-content: space-between; align-items: center; }
+.sched-name { font-size: 32rpx; font-weight: 600; }
+.sched-time { color: var(--sage-deep); font-weight: 600; margin: 10rpx 0; }
+.sched-foot { display: flex; align-items: center; margin-top: 16rpx; }
+.remain { font-size: 24rpx; color: var(--sage-deep); }
+.remain.few { color: var(--danger); }
+.cost { font-size: 24rpx; color: var(--text-light); margin-left: 16rpx; }
+.sched-btn { margin-left: auto; font-size: 24rpx; padding: 10rpx 30rpx; }

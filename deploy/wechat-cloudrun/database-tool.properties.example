@@ -1,0 +1,15 @@
+# Actual file outside the upload directory; chmod 600. Do not send its values in chat.
+# Run only from an authorized operations location which reaches the private MySQL endpoint.
+url=jdbc:mysql://MYSQL_PRIVATE_HOST:3306/uni_pilates_test?sslMode=VERIFY_IDENTITY&serverTimezone=Asia/Shanghai
+database=uni_pilates_test
+user=
+password=
+bootstrap.username=
+bootstrap.name=
+# Only mode=provision uses the following fields; passwords: 48+ random hexadecimal chars.
+runtime.username=uni_pilates_runtime
+runtime.password=
+runtime.host=
+migrator.username=uni_pilates_migrator
+migrator.password=
+migrator.host=

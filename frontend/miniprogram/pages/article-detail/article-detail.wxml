@@ -1,0 +1,10 @@
+<view class="page" wx:if="{{article}}">
+  <view class="title">{{article.title}}</view>
+  <view class="muted meta">{{article.author}} · {{article.views}}阅读</view>
+  <image wx:if="{{article.cover}}" class="cover" src="{{article.cover}}" mode="aspectFill" />
+  <rich-text nodes="{{article.content}}" class="content" />
+  <view class="actions">
+    <view class="act" bindtap="like">{{liked ? '♥ 已赞' : '♡ 点赞'}}</view>
+    <view class="act" bindtap="favorite">{{favorited ? '★ 已收藏' : '☆ 收藏'}}</view>
+  </view>
+</view>

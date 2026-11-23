@@ -1,0 +1,7 @@
+.center { text-align: center; }
+.brand { font-size: 44rpx; font-weight: 700; margin-bottom: 8rpx; }
+.row { display: flex; justify-content: space-between; padding: 20rpx 0; border-bottom: 2rpx solid var(--line); }
+.row:last-child { border-bottom: none; }
+.footer { display: flex; flex-direction: column; gap: 20rpx; padding: 24rpx; }
+.section-title { font-size: 28rpx; font-weight: 600; color: var(--text-light); margin-bottom: 12rpx; }
+.intro { font-size: 28rpx; line-height: 1.7; color: var(--text); }

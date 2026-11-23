@@ -1,0 +1,30 @@
+<view class="page">
+  <view class="card">
+    <button class="btn-primary" disabled="{{issuing}}" bindtap="issueCode">{{ticket ? '刷新签到码' : '出示现场签到码'}}</button>
+    <view wx:if="{{ticketError}}" class="muted">{{ticketError}}</view>
+    <view wx:if="{{ticket}}" class="ticket">
+      <image src="{{ticket.image}}" class="ticket-image" mode="aspectFit" />
+      <view class="muted">此码在 {{ticket.expiresInSeconds}} 秒内有效，请在现场出示。</view>
+    </view>
+  </view>
+  <view wx:if="{{loading}}" class="empty">正在加载学员…</view>
+  <view wx:elif="{{error}}" class="empty" bindtap="load">{{error}} · 点击重试</view>
+  <view wx:elif="{{!students.length}}" class="empty">暂无学员</view>
+  <block wx:else>
+  <view class="card" wx:for="{{students}}" wx:key="bookingId">
+    <view class="st-head" bindtap="goDetail" data-uid="{{item.userId}}">
+      <image wx:if="{{item.avatarUrl}}" class="avatar st-avatar" src="{{item.avatarUrl}}" mode="aspectFill" />
+      <view wx:else class="avatar st-avatar coach-avatar-fallback">{{item.nickname}}</view>
+      <view class="st-info">
+        <view>{{item.nickname}}</view>
+        <view class="muted">{{item.levelName}} · 剩余{{item.remainingCredits==-1?'不限':item.remainingCredits}}课时</view>
+      </view>
+      <view class="st-status">{{item.statusLabel}}<view wx:if="{{item.attendanceLabel}}" class="muted">{{item.attendanceLabel}}</view></view>
+    </view>
+    <view class="st-actions">
+      <button wx:if="{{item.canCheckin}}" class="btn-primary st-btn" disabled="{{!!signingId}}" bindtap="checkin" data-id="{{item.bookingId}}">代签到</button>
+      <view class="btn-plain st-btn" bindtap="goTraining" data-id="{{item.bookingId}}" data-uid="{{item.userId}}">训练记录</view>
+    </view>
+  </view>
+  </block>
+</view>

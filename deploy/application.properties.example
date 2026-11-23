@@ -1,0 +1,22 @@
+# NON-SECRET EXAMPLE. Actual file outside Git; owner 10001, mode 0400 on Linux.
+# Use private endpoints and verify the issued RDS CA hostname/certificate.
+spring.datasource.url=jdbc:mysql://RDS_PRIVATE_HOST:3306/pilates_staging?sslMode=VERIFY_IDENTITY&serverTimezone=Asia/Shanghai
+spring.datasource.username=pilates_runtime
+spring.datasource.password=
+spring.data.redis.host=TAIR_PRIVATE_HOST
+spring.data.redis.port=6379
+spring.data.redis.password=
+spring.data.redis.ssl.enabled=true
+yoyi.jwt.secret=
+yoyi.public-base-url=https://TEST_DOMAIN
+yoyi.cors.allowed-origins=https://TEST_DOMAIN
+yoyi.security.trusted-proxies=172.29.88.10/32
+yoyi.wx.login-enabled=true
+yoyi.wx.appid=
+yoyi.wx.secret=
+yoyi.wx.phone-enabled=false
+yoyi.storage.type=oss
+yoyi.storage.oss.endpoint=https://oss-REGION-internal.aliyuncs.com
+yoyi.storage.oss.bucket=TEST_PRIVATE_BUCKET
+yoyi.storage.oss.role-name=ECS_ATTACHED_ROLE
+# No payment/SMS/subscription credentials are needed while those channels are disabled.

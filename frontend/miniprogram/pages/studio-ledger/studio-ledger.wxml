@@ -1,0 +1,35 @@
+<view class="page">
+  <view class="card">
+    <view class="heading">可用余额</view>
+    <view wx:for="{{accounts}}" wx:key="bucket">{{item.name}}　¥{{item.amount}}</view>
+  </view>
+  <view class="tabs">
+    <button size="mini" disabled="{{tab === 'history'}}" data-tab="history" bindtap="tab">历史课程</button>
+    <button size="mini" disabled="{{tab === 'entries'}}" data-tab="entries" bindtap="tab">余额明细</button>
+    <button size="mini" disabled="{{tab === 'fees'}}" data-tab="fees" bindtap="tab">取消费</button>
+  </view>
+  <view wx:if="{{error}}" class="card" bindtap="retry">{{error}}　重试</view>
+  <view wx:elif="{{!list.length && !busy}}" class="card">暂无记录</view>
+  <block wx:if="{{tab === 'fees'}}">
+    <view wx:for="{{list}}" wx:key="booking_id" class="card">
+      <view class="heading">{{item.course_name}}　{{item.stateText}}</view>
+      <view>{{item.timeText}}　{{item.coach_name}}</view>
+      <view wx:if="{{item.state !== 'WAIVED'}}">金额 ¥{{item.amountText}}</view>
+    </view>
+  </block>
+  <block wx:else>
+    <view wx:for="{{list}}" wx:key="id" class="card">
+      <view wx:if="{{tab === 'history'}}">
+        <view class="heading">{{item.course_name}}　{{item.outcomeText}}</view>
+        <view>{{item.timeText}}　{{item.coach_name}} · {{item.typeText}}</view>
+        <view>{{item.stateText}} {{item.basisText}}<text wx:if="{{item.amount_fen}}">　¥{{item.amountText}}</text><text wx:if="{{item.reportedText}}">　原费用 ¥{{item.reportedText}}</text></view>
+      </view>
+      <view wx:else>
+        <view class="heading">{{item.kindText}}　¥{{item.amountText}}</view>
+        <view>{{item.timeText}}　{{item.typeText}}</view>
+        <view>该笔入账后余额 ¥{{item.afterText}} <text wx:if="{{item.reversed_by}}"> · 已冲正</text></view>
+      </view>
+    </view>
+  </block>
+  <button wx:if="{{more}}" disabled="{{busy}}" bindtap="next">加载更多</button>
+</view>

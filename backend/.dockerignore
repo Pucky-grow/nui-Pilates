@@ -1,0 +1,10 @@
+target*
+*.log
+.env*
+!.env.example
+uploads
+backups
+**/*.pem
+!src/main/resources/certificates/tencent-redis-ca.pem
+**/*.key
+.git

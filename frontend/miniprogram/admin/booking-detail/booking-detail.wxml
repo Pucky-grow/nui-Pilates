@@ -1,0 +1,43 @@
+<view class="page">
+  <view wx:if="{{error}}" class="error">
+    {{error}}
+    <text bindtap="load">
+      　重试
+    </text>
+  </view>
+  <view wx:if="{{row}}" class="card">
+    <view class="title">
+      {{row.booking.courseName}}
+    </view>
+    <view class="line">
+      会员：{{row.nickname}} {{row.phone}}
+    </view>
+    <view class="line">
+      时间：{{row.booking.courseDate}} {{row.booking.startTime}}—{{row.booking.endTime}}
+    </view>
+    <view class="line">
+      教练：{{row.booking.coachName}}　教室：{{row.booking.classroomName}}
+    </view>
+    <view class="line">
+      状态：{{statusLabel}}
+    </view>
+    <view wx:if="{{attendanceSource}}" class="line">签到方式：{{attendanceSource}}</view>
+    <view class="hint">
+      {{row.booking.bookingNo}}
+    </view>
+    <view class="line">
+      备注：{{row.booking.remark || '无'}}
+    </view>
+    <view wx:if="{{row.booking.cancelReason}}" class="line">
+      取消原因：{{row.booking.cancelReason}}
+    </view>
+  </view>
+  <view wx:if="{{row && ((canManage && row.booking.canCancel) || (canSign && row.booking.canCheckin))}}" class="card">
+    <view class="title">办理这条预约</view>
+    <view class="actions">
+      <button wx:if="{{canSign && row.booking.canCheckin}}" class="admin-action primary" disabled="{{busy}}" bindtap="checkIn">登记会员签到</button>
+      <button wx:if="{{canManage && row.booking.canCancel}}" class="admin-action {{canSign && row.booking.canCheckin ? 'secondary' : 'primary'}}" disabled="{{busy}}" bindtap="move">为会员换场次</button>
+      <button wx:if="{{canManage && row.booking.canCancel}}" class="admin-action danger" disabled="{{busy}}" bindtap="cancelMenu">取消该预约</button>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,10 @@
+.filter-bar { display: flex; padding: 16rpx 24rpx; gap: 16rpx; }
+.fb-item { padding: 8rpx 26rpx; border-radius: 30rpx; background: #fff; color: var(--text-light); font-size: 24rpx; }
+.fb-item.on { background: var(--sage); color: #fff; }
+.go-btn { width: 360rpx; margin: 30rpx auto; }
+.b-head { display: flex; justify-content: space-between; }
+.b-name { font-size: 30rpx; font-weight: 600; }
+.b-status { font-size: 24rpx; color: var(--sage-deep); }
+.b-time { color: var(--sage-deep); font-weight: 600; margin: 10rpx 0; }
+.b-foot { display: flex; align-items: center; margin-top: 16rpx; }
+.b-cancel, .b-checkin { margin-left: auto; font-size: 24rpx; padding: 8rpx 26rpx; }

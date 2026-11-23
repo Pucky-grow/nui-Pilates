@@ -1,0 +1,3 @@
+.content { width: 100%; height: 200rpx; border: 2rpx solid var(--line); border-radius: 12rpx; padding: 16rpx; box-sizing: border-box; }
+.r-score { color: var(--brown); margin-bottom: 8rpx; }
+.footer { padding: 24rpx; position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg); }

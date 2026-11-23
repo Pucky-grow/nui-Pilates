@@ -1,0 +1,12 @@
+<view class="page">
+  <view class="card coach-row" wx:for="{{coaches}}" wx:key="id" bindtap="goDetail" data-id="{{item.id}}">
+    <image wx:if="{{item.avatar}}" class="avatar coach-avatar" src="{{item.avatar}}" mode="aspectFill" />
+    <view wx:else class="avatar coach-avatar coach-avatar-fallback">{{item.name}}</view>
+    <view class="coach-info">
+      <view class="coach-name">{{item.name}}</view>
+      <view class="muted">{{item.title}} · 从业{{item.years}}年</view>
+      <view class="muted">{{item.specialties}}</view>
+    </view>
+    <view class="rating">★{{item.rating}}</view>
+  </view>
+</view>

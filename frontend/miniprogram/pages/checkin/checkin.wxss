@@ -1,0 +1,4 @@
+.center { text-align: center; padding-top: 160rpx; }
+.tip { color: var(--text-light); margin-bottom: 60rpx; }
+.scan-btn { width: 480rpx; margin: 20rpx auto; }
+.checked { font-size: 60rpx; color: var(--sage-deep); font-weight: 700; }

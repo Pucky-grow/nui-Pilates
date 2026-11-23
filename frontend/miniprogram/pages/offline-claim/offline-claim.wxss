@@ -1,0 +1,3 @@
+.invite { margin: 24rpx 0; padding: 16rpx; background: #f4f0e9; }
+.proof { font-size: 42rpx; letter-spacing: 8rpx; margin: 30rpx 0; }
+.error { color: #9f352a; margin: 12rpx 0; }

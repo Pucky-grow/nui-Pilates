@@ -1,0 +1,33 @@
+<view class="page">
+  <view class="card">
+    <view class="section-title">课程</view>
+    <picker range="{{courses}}" range-key="courseName" value="{{courseIndex}}" bindchange="onCourse">
+      <view class="picker">{{courseIndex >= 0 ? courses[courseIndex].courseName : '请选择课程'}} ›</view>
+    </picker>
+
+    <view class="section-title">上课日期</view>
+    <picker mode="date" value="{{courseDate}}" bindchange="onDate">
+      <view class="picker">{{courseDate || '请选择日期'}} ›</view>
+    </picker>
+
+    <view class="section-title">时间</view>
+    <view class="time-row">
+      <picker mode="time" value="{{startTime}}" bindchange="onStart"><view class="picker">{{startTime}}</view></picker>
+      <text>至</text>
+      <picker mode="time" value="{{endTime}}" bindchange="onEnd"><view class="picker">{{endTime}}</view></picker>
+    </view>
+
+    <view class="section-title">教室</view>
+    <picker range="{{classrooms}}" range-key="name" value="{{roomIndex}}" bindchange="onRoom">
+      <view class="picker">{{roomIndex >= 0 ? classrooms[roomIndex].name : '请选择教室'}} ›</view>
+    </picker>
+
+    <view class="section-title">人数上限</view>
+    <view wx:if="{{privateClass}}">一对一私教 · 1 人</view>
+    <input wx:else class="input" type="number" value="{{maxCapacity}}" bindinput="onCap" placeholder="如 8" />
+  </view>
+
+  <view class="footer">
+    <button class="btn-primary" disabled="{{submitting}}" bindtap="submit">{{submitting ? '提交中…' : '创建排课'}}</button>
+  </view>
+</view>

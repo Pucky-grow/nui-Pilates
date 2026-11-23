@@ -1,0 +1,18 @@
+.page { padding: 24rpx; }
+.head { display: flex; justify-content: space-between; gap: 12rpx; align-items: center; margin-bottom: 16rpx; }
+.catalog-link { margin: 0 0 0 auto; color: #43563d; background: transparent; }
+.catalog-link::after, .item::after, .op::after { border: 0; }
+.display-meta { font-size: 25rpx; color: #6f6458; }
+.item { display: flex; gap: 16rpx; width: 100%; justify-content: space-between; align-items: center; text-align: left; color: var(--text); line-height: 1.5; }
+.item > view { min-width: 0; }
+.c-name { font-size: 30rpx; font-weight: 600; }
+.link { flex-shrink: 0; color: #43563d; font-size: 26rpx; }
+.footer { padding: 12rpx 0; }
+.selected-panel { padding: 20rpx; }
+.group-title { font-size: 27rpx; font-weight: 600; color: var(--text); margin-bottom: 10rpx; }
+.candidates-title { margin: 16rpx 0; }
+.sel-item { display: flex; align-items: center; gap: 10rpx; padding: 14rpx 0; border-bottom: 2rpx solid var(--line); }
+.sel-item:last-child { border-bottom: none; }
+.sel-name { flex: 1; min-width: 0; font-size: 28rpx; overflow-wrap: anywhere; }
+.sel-ops { flex-shrink: 0; display: flex; gap: 6rpx; }
+.op { margin: 0; padding: 0 12rpx; font-size: 25rpx; color: #43563d; background: #eff3ec; }

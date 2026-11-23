@@ -1,0 +1,33 @@
+<view class="page" wx:if="{{pkg}}">
+  <view class="card">
+    <view class="name">{{pkg.name}}</view>
+    <view class="price big-price">¥{{pkg.salePrice}} <text class="muted origin">¥{{pkg.originalPrice}}</text></view>
+    <view class="muted">{{pkg.validDays}}天有效 · {{pkg.type=='PERIOD'?'不限次':pkg.totalCredits+'课时'}}</view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">课包说明</view>
+    <view class="desc">{{pkg.description}}</view>
+  </view>
+
+  <view class="card" wx:if="{{coupons.length}}">
+    <view class="section-title">选择优惠券</view>
+    <view class="coupon-item {{selectedCouponId==item.id?'on':''}}" wx:for="{{coupons}}" wx:key="id" bindtap="selectCoupon" data-id="{{item.id}}">
+      <text>{{item.name}}</text>
+      <text class="muted">满{{item.minAmount}}可用</text>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">积分抵扣</view>
+    <view class="points-row">
+      <text>使用积分(余额 {{points}})</text>
+      <switch checked="{{usePoints}}" bindchange="togglePoints" color="#7A8B6F"/>
+    </view>
+  </view>
+
+  <view class="card" wx:if="{{!packageSales}}">当前免费预约，未开放新购课。</view>
+  <view class="footer" wx:if="{{packageSales}}">
+    <button class="btn-primary" disabled="{{submitting}}" bindtap="submit">立即购买</button>
+  </view>
+</view>

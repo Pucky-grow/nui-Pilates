@@ -1,0 +1,18 @@
+<view class="page">
+  <view wx:if="{{error}}" class="card">{{error}} <button bindtap="load">重试</button></view>
+  <view class="filter-bar">
+    <view class="fb-item {{status=='PENDING_REVIEW'?'on':''}}" bindtap="onFilter" data-v="PENDING_REVIEW">待审核</view>
+    <view class="fb-item {{status=='ALL'?'on':''}}" bindtap="onFilter" data-v="ALL">全部</view>
+  </view>
+
+  <view wx:if="{{!list.length}}" class="empty">暂无课程方案</view>
+  <view class="card" wx:for="{{list}}" wx:key="id">
+    <view class="c-head"><text class="c-name">{{item.courseName}}</text><text class="st">{{statusText[item.status]}}</text></view>
+    <view class="muted">{{item.courseType}} · 提交教练：{{item.coachName || '未知教练'}}</view>
+    <view wx:if="{{item.rejectReason}}" class="muted">驳回原因：{{item.rejectReason}}</view>
+    <view wx:if="{{item.status=='PENDING_REVIEW'}}" class="row-btns">
+      <view class="btn-primary" bindtap="approve" data-id="{{item.id}}">通过</view>
+      <view class="btn-plain" bindtap="reject" data-id="{{item.id}}">驳回</view>
+    </view>
+  </view>
+</view>

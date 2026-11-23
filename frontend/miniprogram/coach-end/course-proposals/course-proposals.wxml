@@ -1,0 +1,14 @@
+<view class="page">
+  <view class="btn-primary create-btn" bindtap="create">+ 创建新课程方案</view>
+
+  <view wx:if="{{!proposals.length}}" class="empty">暂无课程申请</view>
+  <view class="card" wx:for="{{proposals}}" wx:key="id">
+    <view class="c-head"><text class="c-name">{{item.courseName}}</text><text class="st">{{statusText[item.status]}}</text></view>
+    <view class="muted">{{item.proposalNo}} · {{item.courseType}} · {{item.difficulty}}</view>
+    <view wx:if="{{item.status=='REJECTED'}}" class="reject">驳回原因: {{item.rejectReason}}</view>
+    <view class="c-actions">
+      <view wx:if="{{item.status=='DRAFT' || item.status=='REJECTED'}}" class="btn-plain c-btn" bindtap="edit" data-id="{{item.id}}">编辑</view>
+      <view wx:if="{{item.status=='DRAFT' || item.status=='REJECTED'}}" class="btn-primary c-btn" bindtap="submit" data-id="{{item.id}}">提交审核</view>
+    </view>
+  </view>
+</view>

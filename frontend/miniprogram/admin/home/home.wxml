@@ -1,0 +1,52 @@
+<template name="workspaceGroup">
+  <view class="card workspace-group">
+    <view class="title">{{group.title}}</view>
+    <button wx:for="{{group.items}}" wx:for-item="entry" wx:key="page" class="workspace-entry" data-page="{{entry.page}}" bindtap="go">
+      <view class="entry-copy">
+        <view class="entry-title">{{entry.label}}</view>
+        <view class="admin-caption">{{entry.description}}</view>
+      </view>
+      <text wx:if="{{entry.page === 'proposals' && pendingProposals > 0}}" class="pending-count">{{pendingProposals}} 待审核</text>
+      <text class="entry-chevron">›</text>
+    </button>
+  </view>
+</template>
+
+<view class="page">
+  <view wx:if="{{error}}" class="error">{{error}}<text bindtap="load">　重试</text></view>
+  <view wx:if="{{summary || summaryUnavailable}}" class="card day-overview">
+    <view class="overview-title">
+      <view class="title">今日概况</view>
+      <view wx:if="{{summary.date}}" class="admin-caption">{{summary.date}}</view>
+    </view>
+    <view wx:if="{{summary}}" class="overview-stats">
+      <view wx:if="{{summary.todaySchedules != null}}"><text class="overview-number">{{summary.todaySchedules}}</text><text>未取消场次</text></view>
+      <view wx:if="{{summary.occupied != null}}"><text class="overview-number">{{summary.occupied}}</text><text>预约占位</text></view>
+      <view wx:if="{{summary.signed != null}}"><text class="overview-number">{{summary.signed}}</text><text>已签到或完成</text></view>
+    </view>
+    <view wx:else class="admin-caption">暂时无法读取今日概况<text class="workspace-link" bindtap="load">　重试</text></view>
+  </view>
+
+  <block wx:for="{{groups}}" wx:key="title">
+    <template wx:if="{{!item.settings}}" is="workspaceGroup" data="{{group: item, pendingProposals: summary.pendingProposals}}"/>
+  </block>
+
+  <view wx:if="{{hasSettings}}" class="card workspace-group">
+    <button class="workspace-entry settings-toggle" bindtap="toggleSettings">
+      <view class="entry-copy">
+        <view class="entry-title">资料与设置</view>
+        <view class="admin-caption">维护课程、门店展示和系统规则</view>
+      </view>
+      <text class="entry-chevron">{{settingsOpen ? '收起' : '展开'}}</text>
+    </button>
+  </view>
+  <block wx:if="{{settingsOpen}}">
+    <block wx:for="{{groups}}" wx:key="title">
+      <template wx:if="{{item.settings}}" is="workspaceGroup" data="{{group: item}}"/>
+    </block>
+  </block>
+  <view wx:if="{{name}}" class="workspace-footer">
+    <text class="admin-caption">{{name}}</text>
+    <button class="admin-action quiet" bindtap="logout">退出登录</button>
+  </view>
+</view>

@@ -1,0 +1,5 @@
+@import "../management.wxss";
+
+.member-search { margin-bottom: 14rpx; }
+.member-search input { background: #f5f2ec; }
+.member-row { display: flex; align-items: center; justify-content: space-between; gap: 16rpx; }

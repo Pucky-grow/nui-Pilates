@@ -1,0 +1,45 @@
+<view class="page">
+  <view wx:if="{{error}}" class="error">
+    {{error}}
+    <text bindtap="load">
+      　重试
+    </text>
+  </view>
+  <view class="toolbar">
+    <input placeholder="课程名称" value="{{keyword}}" bindinput="input"/>
+    <button bindtap="load">
+      查询
+    </button>
+    <button wx:if="{{canCreate}}" bindtap="edit">
+      新增课程
+    </button>
+    <button bindtap="categories">
+      课程分类
+    </button>
+  </view>
+  <view class="card" wx:for="{{list}}" wx:key="id">
+    <view class="title">
+      {{item.name}}
+    </view>
+    <view>
+      {{item.durationMinutes}} 分钟 · {{item.type === 'PRIVATE' ? '私教' : item.type === 'GROUP' ? '团课' : '体验课'}} · {{item.statusLabel}}
+    </view>
+    <view class="actions">
+      <button class="admin-action secondary" data-id="{{item.id}}" bindtap="edit">
+        课程详情
+      </button>
+      <button class="admin-action quiet" data-id="{{item.id}}" bindtap="qualifications">
+        教练授课资格
+      </button>
+      <button wx:if="{{canUpdate}}" class="admin-action quiet" data-id="{{item.id}}" disabled="{{busy}}" bindtap="shelf">
+        {{item.status === 'ON_SHELF' ? '下架课程' : '上架课程'}}
+      </button>
+    </view>
+  </view>
+  <button wx:if="{{list.length < total}}" loading="{{busy}}" disabled="{{busy}}" bindtap="more">
+    加载更多（{{list.length}} / {{total}}）
+  </button>
+  <view wx:if="{{!list.length && !busy && !error}}" class="empty">
+    暂无记录
+  </view>
+</view>

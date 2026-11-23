@@ -1,0 +1,7 @@
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Source SHA256 evidence is not an API credential"
+regexTarget = "line"
+regexes = ['''^\s*"[^"]+/[^"/]+\.(java|json|yml|yaml|py|md|js|cjs|mjs|vue|wxml|wxss|sql|xml|hcl|tf|properties|html|css)":\s*"[a-f0-9]{64}"[,]?\s*$''']

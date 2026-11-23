@@ -1,0 +1,34 @@
+<view class="page">
+  <view class="card">
+    <view class="section-title">基本信息</view>
+    <input class="input" placeholder="课程名称" value="{{name}}" bindinput="onName" />
+    <view class="form-row"><text>分类</text>
+      <picker range="{{categories}}" range-key="name" bindchange="onCategory">
+        <view class="picker">{{catIndex>=0?categories[catIndex].name:'选择分类'}}</view>
+      </picker>
+    </view>
+    <view class="form-row"><text>类型</text>
+      <view class="seg"><view class="seg-item {{type=='GROUP'?'on':''}}" bindtap="onType" data-v="GROUP">团课</view><view class="seg-item {{type=='PRIVATE'?'on':''}}" bindtap="onType" data-v="PRIVATE">私教</view></view>
+    </view>
+    <view class="form-row"><text>难度</text>
+      <view class="seg"><view class="seg-item {{difficulty=='BEGINNER'?'on':''}}" bindtap="onDifficulty" data-v="BEGINNER">入门</view><view class="seg-item {{difficulty=='JUNIOR'?'on':''}}" bindtap="onDifficulty" data-v="JUNIOR">初级</view><view class="seg-item {{difficulty=='INTERMEDIATE'?'on':''}}" bindtap="onDifficulty" data-v="INTERMEDIATE">中级</view></view>
+    </view>
+    <view class="form-row"><text>时长(分)</text><input class="picker" type="number" value="{{duration}}" bindinput="onDuration"/></view>
+    <view class="form-row"><text>建议人数</text><input class="picker" type="number" value="{{capacity}}" bindinput="onCapacity"/></view>
+    <view class="form-row"><text>消耗课时</text><input class="picker" type="number" value="{{credits}}" bindinput="onCredits"/></view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">内容说明</view>
+    <input class="input" placeholder="课程简介" value="{{description}}" bindinput="onDescription" />
+    <input class="input" placeholder="训练目标" value="{{goal}}" bindinput="onGoal" />
+    <input class="input" placeholder="适合人群" value="{{audience}}" bindinput="onAudience" />
+    <textarea class="input area" placeholder="课程内容说明" value="{{content}}" bindinput="onContent" />
+    <input class="input" placeholder="注意事项" value="{{precautions}}" bindinput="onPrecautions" />
+  </view>
+
+  <view class="footer">
+    <button class="btn-plain" bindtap="save">保存草稿</button>
+    <button class="btn-primary" bindtap="submit">提交审核</button>
+  </view>
+</view>

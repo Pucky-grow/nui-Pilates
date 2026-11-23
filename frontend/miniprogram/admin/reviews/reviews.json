@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "请假 / 调课审核",
+  "enablePullDownRefresh": true,
+  "usingComponents": {
+    "management-form": "../components/management-form/index"
+  }
+}

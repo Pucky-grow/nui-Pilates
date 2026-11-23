@@ -1,0 +1,79 @@
+/* app.wxss —— 优仪普拉提品牌主题 */
+page {
+  --bg: #FAF7F2;           /* 米白 */
+  --card: #FFFFFF;
+  --cream: #F4EEE5;        /* 奶油 */
+  --sage: #7A8B6F;         /* 鼠尾草绿(主强调) */
+  --sage-deep: #5F7057;
+  --brown: #B49B7F;        /* 暖棕 */
+  --text: #4A423A;         /* 深灰 */
+  --text-light: #9A8F82;
+  --line: #EDE6DC;
+  --danger: #C08572;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 28rpx;
+  line-height: 1.6;
+}
+
+.container { padding: 24rpx; }
+.card {
+  background: var(--card);
+  border-radius: 20rpx;
+  padding: 28rpx;
+  margin-bottom: 24rpx;
+  box-shadow: 0 4rpx 16rpx rgba(74, 66, 58, 0.05);
+}
+.section-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  margin: 8rpx 0 20rpx;
+  display: flex;
+  align-items: center;
+}
+.section-title::before {
+  content: '';
+  width: 8rpx; height: 32rpx;
+  background: var(--sage);
+  border-radius: 4rpx;
+  margin-right: 14rpx;
+}
+.tag {
+  display: inline-block;
+  font-size: 22rpx;
+  color: var(--sage-deep);
+  background: #EFF3EC;
+  border-radius: 8rpx;
+  padding: 4rpx 14rpx;
+  margin-right: 12rpx;
+}
+.btn-primary {
+  background: var(--sage);
+  color: #fff;
+  border-radius: 44rpx;
+  font-size: 30rpx;
+  padding: 20rpx 0;
+  text-align: center;
+  border: none;
+}
+.btn-primary[disabled] { background: #C9CDBF; }
+.btn-plain {
+  background: transparent;
+  color: var(--sage-deep);
+  border: 2rpx solid var(--sage);
+  border-radius: 44rpx;
+  font-size: 28rpx;
+  padding: 16rpx 0;
+  text-align: center;
+}
+.muted { color: var(--text-light); font-size: 24rpx; }
+.price { color: var(--brown); font-weight: 600; }
+.divider { height: 2rpx; background: var(--line); margin: 24rpx 0; }
+.empty {
+  text-align: center;
+  color: var(--text-light);
+  padding: 120rpx 0;
+  font-size: 26rpx;
+}
+.avatar { border-radius: 50%; background: var(--cream); }
+.coach-avatar-fallback { display: flex; align-items: center; justify-content: center; color: var(--sage-deep); font-weight: 600; font-size: 30rpx; }

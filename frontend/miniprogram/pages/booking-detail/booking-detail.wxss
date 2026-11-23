@@ -1,0 +1,5 @@
+.name { font-size: 36rpx; font-weight: 700; }
+.status { color: var(--sage-deep); margin: 8rpx 0; }
+.time { color: var(--sage-deep); font-weight: 600; }
+.footer { display: flex; gap: 20rpx; padding: 24rpx; position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg); }
+.footer .btn-plain, .footer .btn-primary { flex: 1; }

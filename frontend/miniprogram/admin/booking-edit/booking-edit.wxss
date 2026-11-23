@@ -1,0 +1,7 @@
+@import "../management.wxss";
+
+.schedule-choice.selected { box-shadow: inset 0 0 0 2rpx #6d8264; background: #edf1e9; }
+.schedule-choice.unavailable { background: #f5f2ec; }
+.schedule-choice .admin-caption { margin-top: 10rpx; }
+.submit-booking, .booking-remark { margin-top: 16rpx; }
+.submit-booking { width: 100%; }

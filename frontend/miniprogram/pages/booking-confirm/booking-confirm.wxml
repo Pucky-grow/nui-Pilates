@@ -1,0 +1,16 @@
+<import src="./readiness.wxml" />
+<view class="page">
+  <view wx:if="{{loading}}" class="empty">加载中…</view>
+  <view wx:if="{{error}}" class="empty" bindtap="retry">{{error}} · 点击刷新</view>
+  <block wx:if="{{schedule && !loading}}">
+    <view class="card"><view class="name">{{schedule.courseName}}</view><view class="time">{{schedule.courseDate}} {{schedule.startTime}} - {{schedule.endTime}}</view><view class="muted">{{schedule.coachName}} · {{schedule.classroomName}} · 已约{{schedule.bookedCount}}/{{schedule.maxCapacity}}人 · 剩{{schedule.remaining}}席</view><view>{{bookingMode === 'FREE' ? '免费预约 · 无需购买课包' : '使用适用课包预约 · 系统优先选择最早到期课包'}}</view></view>
+    <view class="card">
+      <view class="section-title">上课须知</view>
+      <template is="classReadiness" data="{{schedule: schedule}}" />
+      <view class="muted">首次上课请提前到店，向教练说明训练经验。如果有正在影响训练的不适或动作限制，请在课前与教练沟通。</view>
+    </view>
+    <view class="card"><view class="section-title">训练目标（选填）</view><input class="remark" maxlength="255" placeholder="如：体态改善 / 核心训练" bindinput="onRemark" value="{{remark}}" /></view>
+    <view wx:if="{{!schedule.bookable}}" class="empty">{{schedule.unbookableReason}}</view>
+    <view class="footer"><button wx:if="{{schedule.bookable}}" class="btn-primary" disabled="{{submitting}}" bindtap="submit">{{submitting ? '提交中…' : '确认预约'}}</button><button wx:elif="{{waitlistEnabled && schedule.bookingStatus === 'FULL'}}" class="btn-primary" disabled="{{submitting}}" bindtap="joinWaitlist">加入候补</button><button wx:else class="btn-plain" disabled>当前不可预约</button></view>
+  </block>
+</view>

@@ -1,0 +1,53 @@
+<view class="page">
+  <view wx:if="{{error}}" class="error">
+    {{error}}
+    <text bindtap="load">
+      　重试
+    </text>
+  </view>
+  <block wx:if="{{canManage}}">
+  <view class="card">
+    <view class="title">
+      {{bookingId ? '为会员换场次' : ledgerBooking ? '按账本条款代预约' : '代会员预约'}}
+    </view>
+    <view class="line">
+      已选会员：{{memberName || '未选择'}}
+    </view>
+    <view wx:if="{{!fixedMember}}" class="toolbar">
+      <input placeholder="会员姓名或手机号" data-key="keyword" disabled="{{busy}}" bindinput="input" confirm-type="search" bindconfirm="search"/>
+      <button class="admin-action secondary" disabled="{{busy}}" bindtap="search">查找会员</button>
+    </view>
+    <view class="line" wx:for="{{members}}" wx:key="id" data-id="{{item.member.userId}}" bindtap="pickMember">
+      {{item.nickname}} {{item.phone}}
+    </view>
+    <picker mode="date" value="{{date}}" disabled="{{busy}}" bindchange="date">
+      <view class="date">
+        上课日期：{{date}}
+      </view>
+    </picker>
+  </view>
+  <view class="card schedule-choice {{scheduleId == item.id ? 'selected' : ''}} {{item.bookable ? '' : 'unavailable'}}" wx:for="{{list}}" wx:key="id" data-id="{{item.id}}" bindtap="pick">
+    <view class="title">
+      {{item.courseName}}
+    </view>
+    <view>
+      {{item.startTime}}—{{item.endTime}} · {{item.coachName}}
+    </view>
+    <view>
+      {{item.classroomName}} · 余位 {{item.remaining}}/{{item.maxCapacity}}
+    </view>
+    <view class="admin-caption">{{item.bookable ? scheduleId == item.id ? '已选场次' : '可预约 · 点选此场次' : item.unbookableReason || '当前不可预约'}}</view>
+  </view>
+  <view wx:if="{{!list.length && !busy && !error}}" class="empty">
+    当天无排课，请选择其他日期
+  </view>
+  <view class="card">
+    <input class="input" placeholder="{{bookingId ? '换场次原因（必填）' : '代预约原因（必填）'}}" data-key="reason" disabled="{{busy}}" bindinput="input" maxlength="255"/>
+    <input wx:if="{{!bookingId && !ledgerBooking}}" class="input booking-remark" placeholder="预约备注（选填）" data-key="remark" disabled="{{busy}}" bindinput="input" maxlength="255"/>
+    <view wx:if="{{bookingId}}" class="hint">换场次失败时会保留原预约。</view>
+    <button class="admin-action primary submit-booking" disabled="{{busy || !userId || !scheduleId || !reason}}" loading="{{busy}}" bindtap="submit">
+      {{bookingId ? '确认换场次' : '确认代预约'}}
+    </button>
+  </view>
+  </block>
+</view>

@@ -1,0 +1,17 @@
+@import "../management.wxss";
+
+.member-heading, .member-sessions, .member-binding { display: flex; justify-content: space-between; align-items: center; gap: 16rpx; }
+.member-badge { flex-shrink: 0; border-radius: 8rpx; padding: 4rpx 14rpx; color: #43563d; background: #edf1e9; font-size: 24rpx; }
+.member-number { margin: 8rpx 0; overflow-wrap: anywhere; }
+.member-binding { padding-top: 14rpx; border-top: 2rpx solid var(--line); }
+.member-binding button { flex-shrink: 0; }
+.binding-status { display: flex; flex-wrap: wrap; align-items: center; gap: 12rpx; }
+.binding-panel { margin-top: 16rpx; padding: 20rpx; border-radius: 14rpx; background: #f7f8f4; }
+.binding-invitation { margin-top: 16rpx; }
+.invite-code { margin-top: 8rpx; font-family: monospace; overflow-wrap: anywhere; }
+.binding-panel .revoke-invite { color: #874733; }
+.member-sessions { margin-top: 18rpx; padding-top: 16rpx; border-top: 2rpx solid var(--line); }
+.sessions-value { color: #43563d; font-weight: 600; }
+.member-operations { display: flex; flex-direction: column; gap: 18rpx; }
+.operation-row .admin-caption { margin-top: 6rpx; }
+.member-operations .admin-action { width: 100%; }

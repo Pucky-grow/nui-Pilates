@@ -1,0 +1,37 @@
+<view class="page">
+  <view wx:if="{{error}}" class="card">{{error}} <button bindtap="load">重试</button></view>
+  <view class="card">
+    <view class="section-title">图片 <text class="req">*</text></view>
+    <view class="cover-wrap" bindtap="onImage">
+      <image wx:if="{{imageUrl}}" class="cover" src="{{imageUrl}}" mode="aspectFill" />
+      <view wx:else class="cover cover-fallback">点击上传Banner图片</view>
+    </view>
+
+    <view class="section-title">标题</view>
+    <input class="input" value="{{title}}" data-k="title" bindinput="onInput" placeholder="标题" />
+
+    <view class="section-title">副标题</view>
+    <input class="input" value="{{subtitle}}" data-k="subtitle" bindinput="onInput" placeholder="副标题" />
+
+    <view class="section-title">跳转类型</view>
+    <picker range="{{linkTypes}}" range-key="label" value="{{linkIndex}}" bindchange="onLinkType">
+      <view class="picker">{{linkTypes[linkIndex].label}} ›</view>
+    </picker>
+
+    <view class="section-title">跳转值（课程/课包/文章填数字ID，链接填URL）</view>
+    <input class="input" value="{{linkValue}}" data-k="linkValue" bindinput="onInput" placeholder="跳转值" />
+
+    <view class="section-title">排序（数字越小越靠前）</view>
+    <input class="input" type="number" value="{{sort}}" data-k="sort" bindinput="onInput" placeholder="0" />
+
+    <view class="section-title">是否启用</view>
+    <view class="switch-row">
+      <text>{{status == 'ACTIVE' ? '启用' : '禁用'}}</text>
+      <switch checked="{{status == 'ACTIVE'}}" color="#7A8B6F" bindchange="onStatus" />
+    </view>
+  </view>
+
+  <view class="footer">
+    <button class="btn-primary" disabled="{{submitting || loading || error}}" bindtap="submit">{{submitting ? '保存中…' : '保存'}}</button>
+  </view>
+</view>

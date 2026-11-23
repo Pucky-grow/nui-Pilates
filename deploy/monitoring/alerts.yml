@@ -1,0 +1,29 @@
+groups:
+  - name: pilates
+    rules:
+      - alert: BackendScrapeMissing
+        expr: up{job="pilates"} == 0
+        for: 2m
+      - alert: BackendErrors
+        expr: sum(rate(pilates_api_errors_total{code="50000"}[5m])) > 0.02
+        for: 5m
+      - alert: BackendSlow
+        expr: sum(rate(http_server_requests_seconds_sum[5m])) / clamp_min(sum(rate(http_server_requests_seconds_count[5m])),1) > 1
+        for: 5m
+      - alert: EventFailures
+        expr: pilates_outbox_failed > 0
+        for: 2m
+      - alert: EventBacklog
+        expr: pilates_outbox_oldest_seconds > 300
+        for: 5m
+      - alert: TaskFailure
+        expr: increase(pilates_task_runs_total{result="failure"}[10m]) > 0
+      - alert: BookingCountMismatch
+        expr: pilates_booking_mismatches > 0
+        for: 2m
+      - alert: DiskLow
+        expr: disk_free_bytes / disk_total_bytes < 0.15
+        for: 10m
+      - alert: DatabasePoolExhausted
+        expr: hikaricp_connections_pending > 0
+        for: 2m
