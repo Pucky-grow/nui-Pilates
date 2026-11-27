@@ -6,17 +6,21 @@ import com.yoyi.pilates.booking.infrastructure.mapper.BookingMapper;
 import com.yoyi.pilates.course.infrastructure.entity.CourseScheduleEntity;
 import com.yoyi.pilates.course.infrastructure.mapper.CourseMapper;
 import com.yoyi.pilates.course.infrastructure.mapper.CourseScheduleMapper;
+import com.yoyi.pilates.common.util.StudioTime;
 import com.yoyi.pilates.member.infrastructure.mapper.MemberMapper;
 import com.yoyi.pilates.trade.infrastructure.entity.OrderEntity;
 import com.yoyi.pilates.trade.infrastructure.mapper.OrderMapper;
 import com.yoyi.pilates.user.infrastructure.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -36,6 +40,7 @@ public class StatsService {
     private final UserMapper userMapper;
     private final CourseScheduleMapper scheduleMapper;
     private final CourseMapper courseMapper;
+    private final JdbcTemplate jdbc;
 
     /** 看板总览 */
     public Map<String, Object> dashboard() {
@@ -130,11 +135,75 @@ public class StatsService {
     }
 
     private BigDecimal sumPaid(LocalDateTime from, LocalDateTime to) {
-        List<OrderEntity> paidOrders = orderMapper.selectList(new LambdaQueryWrapper<OrderEntity>()
-                .in(OrderEntity::getStatus, List.of("PAID", "REFUNDED"))
-                .ge(OrderEntity::getPaidAt, from).lt(OrderEntity::getPaidAt, to));
-        return paidOrders.stream().map(OrderEntity::getPayAmount)
+        var query = new LambdaQueryWrapper<OrderEntity>()
+                .in(OrderEntity::getStatus, List.of("PAID", "REFUNDED"));
+        if (from != null) query.ge(OrderEntity::getPaidAt, from);
+        if (to != null) query.lt(OrderEntity::getPaidAt, to);
+        return orderMapper.selectList(query).stream().map(OrderEntity::getPayAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    /**
+     * 经营账本总览: 营业额(今日/本周/本月/累计)、已上课数(同口径)、
+     * 课包剩余课次(小班/私教/合计)与待上课预约数. 已上课按账本表 studio_member_lesson
+     * (outcome=ATTENDED) 统计, 时间取对应场次 studio_lesson_session.start_at; 周从周一开始.
+     */
+    public Map<String, Object> studioLedgerOverview() {
+        LocalDate today = StudioTime.today();
+        LocalDateTime todayStart = today.atStartOfDay();
+        LocalDateTime weekStart = today.minusDays(today.getDayOfWeek().getValue() - 1L).atStartOfDay();
+        LocalDateTime monthStart = today.withDayOfMonth(1).atStartOfDay();
+
+        Map<String, Object> revenue = new LinkedHashMap<>();
+        revenue.put("today", sumPaid(todayStart, todayStart.plusDays(1)));
+        revenue.put("week", sumPaid(weekStart, null));
+        revenue.put("month", sumPaid(monthStart, null));
+        revenue.put("total", sumPaid(null, null));
+
+        Map<String, Object> attended = new LinkedHashMap<>();
+        attended.put("today", countAttended(todayStart, todayStart.plusDays(1)));
+        attended.put("week", countAttended(weekStart, null));
+        attended.put("month", countAttended(monthStart, null));
+        attended.put("total", countAttended(null, null));
+
+        long groupCredits = 0;
+        long privateCredits = 0;
+        for (var row : jdbc.queryForList(
+                "SELECT type, COALESCE(SUM(remaining_credits),0) AS credits FROM user_package "
+                        + "WHERE status='ACTIVE' AND deleted=0 GROUP BY type")) {
+            long credits = ((Number) row.get("credits")).longValue();
+            if ("PRIVATE".equals(row.get("type"))) privateCredits += credits;
+            else groupCredits += credits;
+        }
+        Map<String, Object> remaining = new LinkedHashMap<>();
+        remaining.put("total", groupCredits + privateCredits);
+        remaining.put("group", groupCredits);
+        remaining.put("private", privateCredits);
+
+        long upcomingBookings = bookingMapper.selectCount(new LambdaQueryWrapper<BookingEntity>()
+                .in(BookingEntity::getStatus, List.of("BOOKED", "SIGNED_IN")));
+
+        Map<String, Object> view = new LinkedHashMap<>();
+        view.put("revenue", revenue);
+        view.put("attended", attended);
+        view.put("remainingCredits", remaining);
+        view.put("upcomingBookings", upcomingBookings);
+        return view;
+    }
+
+    private long countAttended(LocalDateTime from, LocalDateTime to) {
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM studio_member_lesson l "
+                + "JOIN studio_lesson_session s ON l.session_id = s.id WHERE l.outcome = 'ATTENDED'");
+        List<Object> args = new ArrayList<>();
+        if (from != null) {
+            sql.append(" AND s.start_at >= ?");
+            args.add(Timestamp.valueOf(from));
+        }
+        if (to != null) {
+            sql.append(" AND s.start_at < ?");
+            args.add(Timestamp.valueOf(to));
+        }
+        return jdbc.queryForObject(sql.toString(), Long.class, args.toArray());
     }
 
     private Long scheduleIdToCourse(Long scheduleId, List<CourseScheduleEntity> schedules) {

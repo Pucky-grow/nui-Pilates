@@ -8,6 +8,7 @@ const sections = [
   ] },
   { title: '待办与对账', items: [
     ['studio-ledger', '账本待办', '核实收退款、历史课和待结算课费'],
+    ['ledger-overview', '经营账本', '按天、周、月查看营业额、已上课数和剩余课次', 'statistics:view'],
     ['late-fees', '临时取消费', '核对单笔费用，决定收取或免收'],
     ['proposals', '课程申请审核', '审核教练提交的新课程申请', 'manager:course:proposal:view'],
     ['reviews', '请假与调课审核', '处理教练的请假和排班变更', 'schedule:update']
