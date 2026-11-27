@@ -171,7 +171,7 @@ public class StatsService {
         remaining.put("private", privateCredits);
 
         long upcomingBookings = bookingMapper.selectCount(new LambdaQueryWrapper<BookingEntity>()
-                .in(BookingEntity::getStatus, List.of("BOOKED", "SIGNED_IN")));
+                .in(BookingEntity::getStatus, List.of("BOOKED", "SIGNED_IN")).apply("deleted = 0"));
 
         Map<String, Object> view = new LinkedHashMap<>();
         if (canViewFinancials) {
@@ -233,9 +233,11 @@ public class StatsService {
                 Timestamp.valueOf(today.withDayOfMonth(1).atStartOfDay()), Timestamp.valueOf(today.plusDays(1).atStartOfDay()));
     }
 
+    /** 已上课人次: 只统计已核实的账本课程行(与扣费对账口径一致, 冲正/待核实/退回不计). */
     private long countAttended(LocalDateTime from, LocalDateTime to) {
         StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM studio_member_lesson l "
-                + "JOIN studio_lesson_session s ON l.session_id = s.id WHERE l.outcome = 'ATTENDED'");
+                + "JOIN studio_lesson_session s ON l.session_id = s.id "
+                + "WHERE l.outcome = 'ATTENDED' AND l.state = 'VERIFIED'");
         List<Object> args = new ArrayList<>();
         if (from != null) {
             sql.append(" AND s.start_at >= ?");
