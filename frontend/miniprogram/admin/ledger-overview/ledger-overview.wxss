@@ -1,0 +1,8 @@
+@import "../management.wxss";
+
+.overview-title { display: flex; align-items: center; justify-content: space-between; gap: 16rpx; }
+.day-overview { background: #edf1e9; }
+.overview-stats { display: flex; gap: 12rpx; margin-top: 20rpx; }
+.overview-stats view { flex: 1; min-width: 0; display: flex; flex-direction: column; color: #495643; font-size: 24rpx; }
+.overview-number { font-size: 36rpx; font-weight: 650; }
+.workspace-link { color: #43563d; font-size: 27rpx; }

@@ -1,0 +1,45 @@
+<view class="page">
+  <view wx:if="{{error}}" class="error" bindtap="load">{{error}}　重试</view>
+
+  <view wx:if="{{overview}}" class="card day-overview">
+    <view class="overview-title">
+      <view class="title">营业额</view>
+      <view wx:if="{{overview.revenue}}" class="admin-caption">已支付订单实付金额</view>
+    </view>
+    <view wx:if="{{overview.revenue}}" class="overview-stats">
+      <view><text class="overview-number">¥{{overview.revenue.today}}</text><text>今日</text></view>
+      <view><text class="overview-number">¥{{overview.revenue.week}}</text><text>本周</text></view>
+      <view><text class="overview-number">¥{{overview.revenue.month}}</text><text>本月</text></view>
+      <view><text class="overview-number">¥{{overview.revenue.total}}</text><text>累计</text></view>
+    </view>
+    <view wx:else class="admin-caption">当前账号无权限查看营业额</view>
+  </view>
+
+  <view wx:if="{{overview}}" class="card">
+    <view class="overview-title">
+      <view class="title">上课情况</view>
+      <view class="admin-caption">按账本已上课记录统计，周从周一开始</view>
+    </view>
+    <view class="overview-stats">
+      <view><text class="overview-number">{{overview.attended.today}}</text><text>今日已上</text></view>
+      <view><text class="overview-number">{{overview.attended.week}}</text><text>本周已上</text></view>
+      <view><text class="overview-number">{{overview.attended.month}}</text><text>本月已上</text></view>
+      <view><text class="overview-number">{{overview.attended.total}}</text><text>累计已上</text></view>
+    </view>
+  </view>
+
+  <view wx:if="{{overview}}" class="card">
+    <view class="overview-title">
+      <view class="title">剩余课次</view>
+      <view class="admin-caption">有效课包剩余课时</view>
+    </view>
+    <view class="overview-stats">
+      <view><text class="overview-number">{{overview.remainingCredits.group}}</text><text>小班剩余</text></view>
+      <view><text class="overview-number">{{overview.remainingCredits.private}}</text><text>私教剩余</text></view>
+      <view><text class="overview-number">{{overview.remainingCredits.total}}</text><text>合计</text></view>
+      <view><text class="overview-number">{{overview.upcomingBookings}}</text><text>待上课预约</text></view>
+    </view>
+  </view>
+
+  <view wx:if="{{unavailable && !overview}}" class="card">暂时无法读取经营账本<text class="workspace-link" bindtap="load">　重试</text></view>
+</view>

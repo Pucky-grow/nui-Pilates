@@ -46,7 +46,7 @@ class WebSchedulingBrowserTest extends BookingFixture {
         }
         String member=token("MP_USER");String admin=token("ADMIN");
         String url=System.getenv("PILATES_LIVE_WEB_URL")+"/tests/live.html?backend="+URLEncoder.encode("http://127.0.0.1:"+port,StandardCharsets.UTF_8);
-        Path root=Path.of(System.getProperty("basedir")).getParent();Path output=Path.of(System.getProperty("pilates.build.directory",root.resolve("backend/target-round2").toString())).resolve("live-browser.json");Files.createDirectories(output.getParent());
+        Path root=Path.of(System.getProperty("basedir")).getParent();Path output=Path.of(System.getProperty("pilates.build.directory",root.resolve("server/target-round2").toString())).resolve("live-browser.json");Files.createDirectories(output.getParent());
         ProcessBuilder command=new ProcessBuilder("node",root.resolve("scripts/check-web-mount.mjs").toString());command.environment().put("MOUNT_URL",url);command.environment().put("PILATES_BROWSER_INPUT",json.writeValueAsString(Map.of("adminToken",admin,"memberToken",member)));command.redirectErrorStream(true);command.redirectOutput(output.toFile());Process browser=command.start();
         assertTrue(browser.waitFor(90,TimeUnit.SECONDS),"browser timed out");String report=Files.readString(output);assertEquals(0,browser.exitValue(),report);
         var result=json.readTree(report);assertTrue(result.get("passed").asBoolean(),report);scheduleId=result.get("scheduleId").asLong();Long bookingId=result.get("bookingId").asLong();

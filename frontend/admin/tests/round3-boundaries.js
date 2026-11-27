@@ -7,7 +7,7 @@ import http from '../src/utils/request';
 const results=[];
 try{
  for(const [Component,role] of [[Dashboard,'STAFF'],[Orders,'STAFF'],[Orders,'ADMIN']]){
-  localStorage.setItem('adminRoles',JSON.stringify([role]));localStorage.setItem('adminPerms',JSON.stringify(role==='STAFF'?['dashboard:view','order:view']:[]));
+  sessionStorage.setItem('adminRoles',JSON.stringify([role]));sessionStorage.setItem('adminPerms',JSON.stringify(role==='STAFF'?['dashboard:view','order:view']:[]));
   const requests=[];http.defaults.adapter=async config=>{requests.push(config.url);return {status:200,statusText:'OK',headers:{},config,data:{code:0,data:config.url.includes('/statistics/dashboard')?{todayBookings:1,todayFinished:0,todayNewMembers:0,monthNewMembers:0,monthBookings:1,totalMembers:1}:{list:[{id:1,orderNo:'isolated',status:'PAID',...(role==='ADMIN'?{payAmount:123}:{})}],total:1}}};};
   const app=createApp(Component);app.use(ElementPlus);app.mount('#root');await nextTick();await new Promise(r=>setTimeout(r,150));
   const text=document.body.innerText;

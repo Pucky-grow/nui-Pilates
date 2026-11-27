@@ -1,6 +1,6 @@
 # 阿里云隔离测试环境落地手册
 
-使用 `deploy/aliyun/` 和 `deploy/docker-compose*.yml` 为已确认的隔离测试环境准备部署。记录目标资源、配置和镜像摘要。
+截至 2026-10-16：用户确认尚未购买阿里云服务器。未创建 ECS/RDS/Tair/OSS，未推送仓库、改 DNS、开放公网或部署。本地 Linux 结果不是云服务验收。本文件与 Terraform/Compose 是待执行操作包。
 
 ## 开通前需要确认
 
@@ -14,7 +14,7 @@
 | 微信 | 已获授权的测试应用、平台操作权限、测试成员及 iOS/Android 设备 |
 | 经营资料 | 主体、门店地址/电话、隐私联系人、保存/注销流程、RPO/RTO |
 
-使用经确认的测试 AppID。密钥和口令通过受保护文件、云角色或安全终端注入。
+AppID 已在现有项目配置中出现；尚未确认它是否为获授权的本轮测试应用，不能据此调用真实会员或宣称平台验收完成。密钥/口令通过受保护文件、角色或安全终端注入，不发聊天。
 
 ## 推荐首发拓扑与边界
 
@@ -28,7 +28,7 @@
 
 ## 资源模板校验及费用
 
-`deploy/aliyun/` 使用锁定的 aliyun/alicloud provider 2.0.0。先在无云凭据模式运行以下命令校验语法与 provider schema。
+`deploy/aliyun/` 使用锁定的 aliyun/alicloud provider 2.0.0。已在无云凭据模式执行 `tofu init -backend=false`、`tofu validate`；只证明语法和 provider schema，不代表规格可购、IAM 充足、网络可达或已创建。未执行 plan/apply。
 
 ```bash
 cd deploy/aliyun
@@ -77,6 +77,6 @@ docker compose --env-file /SECURE/staging-compose.env \
 
 ## 监控与资源保留
 
-`deploy/monitoring/` 有内部 Prometheus 抓取与告警规则，`deploy/docker-compose.monitoring.yml` 接受已审核的监控镜像。`scripts/production/ops-check.py` 提供只读就绪、磁盘、备份和证书到期检查。指标覆盖 HTTP 和业务错误、延迟、连接池、积压和失败事件、任务结果及库存差异。在云环境配置并验收监控频率、告警接收人、备份计划和值守责任。
+`deploy/monitoring/` 有内部 Prometheus 抓取与告警规则；`deploy/docker-compose.monitoring.yml` 提供要求显式审核镜像的可选内网服务（候选存在高危漏洞，当前禁止直接启用），启动方法见该目录 README。已本地校验规则并启动隔离监控进程。`scripts/production/ops-check.py` 提供只读就绪、磁盘、备份和证书到期检查。指标覆盖 HTTP/业务错误、延迟、连接池、事件积压/失败、任务结果、库存差异。告警接收人未提供，未向外发消息。监控执行频率、接收人、备份计划及值守责任须在云环境配置并验收，不能把单次 curl 当作持续值守。
 
 测试结束仅停止自己创建的服务；按批准的保留期决定快照、加密备份、Bucket 版本及资源清理。未明确授权不自动 destroy、删卷、删 OSS 或清共享 Redis。停 ECS 不代表 RDS/Tair/OSS/磁盘停止计费，需逐项核对账单和资源清单。

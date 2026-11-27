@@ -7,6 +7,8 @@ import com.yoyi.pilates.common.constant.RedisKeys;
 import com.yoyi.pilates.common.exception.BusinessException;
 import com.yoyi.pilates.course.application.ScheduleService;
 import com.yoyi.pilates.infra.mq.EventPublisher;
+import com.yoyi.pilates.common.util.StudioTime;
+import com.yoyi.pilates.member.application.MemberService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +19,7 @@ import static org.mockito.Mockito.*;
 
 class RoundOneConsistencyTest extends BookingFixture {
     @Autowired ScheduleService scheduleService;
+    @Autowired MemberService memberService;
     @MockitoSpyBean AttendanceMapper attendanceSpy;
     @MockitoSpyBean EventPublisher eventSpy;
     @MockitoSpyBean com.yoyi.pilates.course.infrastructure.mapper.CourseScheduleMapper scheduleSpy;
@@ -44,6 +47,27 @@ class RoundOneConsistencyTest extends BookingFixture {
     @Test void memberDailyLimitCoversDifferentSchedules() throws Exception {
         List<Runnable> tasks=new ArrayList<>(); for(int i=0;i<6;i++){Long id=newSchedule(8,1,12+i);tasks.add(()->bookings.book(userId,id,null,null));}
         assertEquals(3,parallel(tasks));
+    }
+    @Test void concurrentCompletionOfDifferentClassesCountsBothOnce() throws Exception {
+        memberService.ensureMember(userId);
+        Long second = newSchedule(8,1,14);
+        for (Long schedule : List.of(scheduleId, second)) {
+            Long id = bookings.book(userId, schedule, null, null);
+            var booked = bookingMapper.selectById(id);
+            booked.setStatus("SIGNED_IN");
+            bookingMapper.updateById(booked);
+            var past = schedules.selectById(schedule);
+            past.setCourseDate(StudioTime.today().minusDays(1));
+            schedules.updateById(past);
+        }
+
+        assertEquals(2, parallel(List.of(
+                () -> assertArrayEquals(new int[]{1, 0}, bookings.finishSchedule(scheduleId)),
+                () -> assertArrayEquals(new int[]{1, 0}, bookings.finishSchedule(second)))));
+        assertArrayEquals(new int[]{0, 0}, bookings.finishSchedule(second));
+        var member = memberService.byUserId(userId);
+        assertEquals(2, member.getTotalSessions());
+        assertNotNull(member.getLastTrainingAt());
     }
     @Test void cancellationIsAtomicAndRedeliveryDoesNotRefundAgain() {
         Long id=bookings.book(userId,scheduleId,null,null); scheduleService.cancel(scheduleId,"测试"); scheduleService.cancel(scheduleId,"重试");

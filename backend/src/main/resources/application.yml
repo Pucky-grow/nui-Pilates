@@ -55,7 +55,7 @@ yoyi:
     secret: ${JWT_SECRET:yoyi-pilates-dev-secret-key-please-change-in-prod-0123456789abcdef}
     # 小程序 token 2 小时(登录保持, 超时自动退出重新登录); 后台 token 12 小时(毫秒)
     mp-ttl: 7200000
-    admin-ttl: 43200000
+    admin-ttl: 7200000
   cors:
     # 生产通过 CORS_ALLOWED_ORIGINS 收紧到管理后台具体域名(逗号分隔)
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173,http://127.0.0.1:5173}

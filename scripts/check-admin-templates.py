@@ -4,7 +4,7 @@ import argparse,json,pathlib,subprocess,tempfile
 p=argparse.ArgumentParser(description=__doc__)
 p.add_argument('--compiler-dir',type=pathlib.Path,default=pathlib.Path('/Applications/wechatwebdevtools.app/Contents/Resources/app.asar.unpacked/node_modules/wcc-exec'))
 p.add_argument('--scope',choices=['admin','all'],default='admin')
-a=p.parse_args();root=pathlib.Path(__file__).resolve().parents[1]/'frontend/miniprogram';results=[]
+a=p.parse_args();root=pathlib.Path(__file__).resolve().parents[1]/'miniprogram';results=[]
 with tempfile.TemporaryDirectory(prefix='pilates-templates-') as directory:
  for binary,extension in [('wcc','wxml'),('wcsc','wxss')]:
     tool=a.compiler_dir/binary;files=sorted(str(f.relative_to(root)) for f in (root if a.scope=='all' else root/'admin').rglob('*.'+extension))

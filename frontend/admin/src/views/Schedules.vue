@@ -65,6 +65,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import http from '../utils/request';
+import { hasAdminPermission as can } from '../utils/adminSession';
 const dateAt = offset => new Date(Date.now()+8*3600000+offset*86400000).toISOString().slice(0,10);
 const disabledDate = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` < dateAt(0);
 const today = dateAt(0), range=ref([today,dateAt(30)]), page=ref(1), list=ref([]), total=ref(0);
@@ -72,7 +73,6 @@ const loading=ref(false), loadError=ref(''), optionError=ref(''), busy=ref(false
 const dialog=ref(false), form=ref({}), capacityDialog=ref(false), selected=ref(null), capacity=ref(8);
 const options=ref({courses:[],coaches:[],classrooms:[],qualifications:[]});
 const states={SCHEDULED:'待开课',CANCELLED:'已取消',FINISHED:'已结束'};
-const can = permission => { try {return JSON.parse(localStorage.getItem('adminRoles')||'[]').includes('ADMIN') || JSON.parse(localStorage.getItem('adminPerms')||'[]').includes(permission);}catch{return false;} };
 const eligibleCoaches=computed(()=>options.value.coaches.filter(c=>options.value.qualifications.some(q=>q.courseId===form.value.courseId && q.coachId===c.id && q.status==='APPROVED')));
 const selectedRoom=computed(()=>options.value.classrooms.find(r=>r.id===form.value.classroomId));
 const privateClass=computed(()=>options.value.courses.some(c=>c.id===form.value.courseId&&c.type==='PRIVATE'));

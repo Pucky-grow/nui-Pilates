@@ -21,8 +21,8 @@ cos.region=ap-shanghai
 cos.bucket=
 cos.secret-id=
 cos.secret-key=
-cos.expected-owner-uin=<BUCKET_OWNER_UIN>
 cos.session-token=
+cos.expected-owner-uin=100053657418
 ```
 
 桶名必须包括 COS 数字 APPID 后缀；不从小程序 AppID/UIN 猜桶名。配置桶/地域必须与两项 CLI 确认一致。`cos.session-token` 可省略或空白；没有自动 STS 续期。

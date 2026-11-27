@@ -1,40 +1,38 @@
 import { defineStore } from 'pinia';
 import http from '../utils/request';
+import { adminToken, adminName, adminRoles, hasAdminPermission, saveAdminSession, clearAdminSession } from '../utils/adminSession';
 
 export const useAuthStore = defineStore('auth', {
-  state: () => ({ token: localStorage.getItem('adminToken') || '', name: '' }),
+  state: () => ({ token: adminToken(), name: adminName() }),
   actions: {
     async login(username, password) {
       const data = await http.post('/api/auth/admin-login', { username, password });
+      saveAdminSession(data);
       this.token = data.token;
       this.name = data.name;
-      localStorage.setItem('adminToken', data.token);
-      localStorage.setItem('adminPerms', JSON.stringify(data.permissions || []));
-      localStorage.setItem('adminRoles', JSON.stringify(data.roles || []));
       return data;
     },
     logout() {
+      const token = adminToken();
       this.token = '';
       this.name = '';
-      localStorage.removeItem('adminToken');
-      localStorage.removeItem('adminRoles');
-      localStorage.removeItem('adminPerms');
+      clearAdminSession();
+      if (token) return http.post('/api/auth/logout', {}, {
+        headers: { Authorization: 'Bearer ' + token },
+        silent: true
+      }).catch(() => {});
     },
     isAdmin() {
-      const roles = JSON.parse(localStorage.getItem('adminRoles') || '[]');
-      return roles.includes('ADMIN');
+      return adminRoles().includes('ADMIN');
     },
     isCoach() {
-      const roles = JSON.parse(localStorage.getItem('adminRoles') || '[]');
-      return roles.includes('COACH');
+      return adminRoles().includes('COACH');
     },
     role() {
-      const roles = JSON.parse(localStorage.getItem('adminRoles') || '[]');
-      return roles[0] || '';
+      return adminRoles()[0] || '';
     },
     hasPerm(perm) {
-      const perms = JSON.parse(localStorage.getItem('adminPerms') || '[]');
-      return this.isAdmin() || perms.includes(perm);
+      return hasAdminPermission(perm);
     }
   }
 });

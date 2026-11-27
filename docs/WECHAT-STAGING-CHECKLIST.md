@@ -1,14 +1,14 @@
 # 微信开发者工具与真机验收清单
 
-工具交互、iOS 和 Android 分别进行验收。先记录本轮待验收的制品和对应的隔离后端。
+当前：工具交互、iOS、Android **均待验证**。隔离云测试后端已通过管理员/Redis/COS 的 8 组真实 HTTPS 检查，不能计作微信端验收。真实 wx.login、合法域名及设备证据仍未取得；原生 WXML/WXSS 编译与 Node 组件检查也不能代替这些项目。
 
-导入仓库根目录或 `frontend/miniprogram/`，核对 AppID 与 `frontend/miniprogram/config/environment.js` 的隔离环境和服务。当前 develop 和 trial 使用原有云托管配置，release 等待正式配置。使用 HTTPS 接入时先核对平台允许的 request、upload 和 download 域名。使用真实微信登录并保留校验。在隔离后端准备合成的门店、教练、场地和排课后执行预约用例。
+本次云端联调准备：测试 AppID `wxd9bd556ad0c77104`，环境 `uni-test-d5gwbyymua6bf2ada`，服务 `uni-test`，后端 `https://uni-test-339305-11-1505023965.sh.run.tcloudbase.com`。`miniprogram/config/environment.js` 当前 trial/release 地址为空，develop 使用本机地址和 Mock；不可直接将当前开发态交给手机连接云端。配置隔离测试环境时使用 HTTPS、真实微信登录、Mock=false，保留正式环境未配置时拒绝请求的保护。先核实该默认测试域名能否用于平台 request/upload/download 配置；不以关闭域名校验代替通过。后端仍报告 studioConfigured=false，真实门店资料、教练/场地/课程/排课由管理员配置后再执行 WX-04 起的用例。
 
 每项分别填写工具/iOS/Android 的设备、系统、微信版本、AppID 环境别名、制品/提交、后端域名、时间、合成用户别名、结果及脱敏证据。不得记录 Token、OpenID、手机号、私密体测、URL 签名或密钥。未做的项目保持待验证，不能用 Chrome 代替。
 
 | 编号 | 操作与通过条件 | 工具 | iOS | Android |
 |---|---|---|---|---|
-| WX-01 | 检查 trial 的隔离云托管或 HTTPS 接入和 Mock=false，验证未配置的 release 会拒绝请求 | 待验证 | 待验证 | 待验证 |
+| WX-01 | 检查 trial/release baseURL=测试 HTTPS，Mock=false；未配置明确阻止请求 | 待验证 | 待验证 | 待验证 |
 | WX-02 | 校验 request/uploadFile/downloadFile 域名、完整 TLS 链、证书有效期；保留平台校验 | 待验证 | 待验证 | 待验证 |
 | WX-03 | 真实微信登录，首次进入、再次进入、切换账号；不同用户隔离 | 待验证 | 待验证 | 待验证 |
 | WX-04 | 无课包会员看团课→免费预约→取消→至少三次重约→返回刷新；旧预约号不影响新记录 | 待验证 | 待验证 | 待验证 |

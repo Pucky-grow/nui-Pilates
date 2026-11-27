@@ -6,14 +6,33 @@
       　重试
     </text>
   </view>
-  <view class="hint">
+  <view wx:if="{{managementReason}}" class="hint">
     {{managementReason}}
   </view>
+  <view wx:if="{{bookUserId && bookMemberName}}" class="card">
+    <view class="title">为 {{bookMemberName}} 安排课程</view>
+    <view class="admin-caption">保存后会生成场次及会员预约。</view>
+  </view>
   <view class="card">
+    <management-form fields="{{courseFields}}" value="{{form}}" disabled="{{busy || !canEdit}}" bindchange="change"/>
+    <view wx:if="{{canEdit && !history}}" class="schedule-course-tools">
+      <view class="course-actions">
+        <button wx:if="{{canCreateCourse}}" class="admin-action secondary" disabled="{{busy}}" bindtap="newCourse">新建课程</button>
+        <button wx:if="{{canEditCourse && form.courseId}}" class="admin-action secondary" disabled="{{busy}}" bindtap="editCourse">编辑所选课程</button>
+        <button wx:if="{{canViewCourses}}" class="admin-action quiet" disabled="{{busy}}" bindtap="courseDirectory">课程目录</button>
+      </view>
+      <view wx:if="{{!options.courses.length}}" class="hint">上架的团课和私教会出现在课程列表。</view>
+      <view wx:if="{{form.courseId && !eligibleCoachCount}}" class="hint">该课程还没有获授课资格的启用教练。</view>
+      <button wx:if="{{form.courseId && !eligibleCoachCount && canAssignCoach}}" class="admin-action secondary qualification-action" disabled="{{busy}}" bindtap="assignCoach">指定授课教练</button>
+    </view>
     <management-form fields="{{fields}}" value="{{form}}" disabled="{{busy || !canEdit}}" bindchange="change"/>
+    <view wx:if="{{bookUserId && bookMemberName}}" class="booking-fields">
+      <input class="input" value="{{reason}}" placeholder="代约原因（必填）" data-key="reason" disabled="{{busy}}" bindinput="bookingInput" maxlength="255"/>
+      <input class="input" value="{{remark}}" placeholder="预约备注（选填）" data-key="remark" disabled="{{busy}}" bindinput="bookingInput" maxlength="255"/>
+    </view>
     <view class="actions">
       <button wx:if="{{canEdit}}" class="admin-action primary" disabled="{{busy}}" bindtap="save">
-        保存排课场次
+        {{bookUserId ? '确认排课并代约' : '保存排课场次'}}
       </button>
       <button wx:if="{{id}}" class="admin-action secondary" bindtap="students">
         查看预约名单

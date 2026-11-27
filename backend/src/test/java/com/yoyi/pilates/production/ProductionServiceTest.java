@@ -65,19 +65,28 @@ class ProductionServiceTest extends BookingFixture {
  @Test void outboxCommitRollbackRetryAndRedeliveryHaveOneBusinessEffect(){
   assertThrows(IllegalStateException.class,()->new TransactionTemplate(transactions).execute(tx->{publisher.publish("test",DomainEvent.of("TEST","rolled-back",Map.of()));throw new IllegalStateException("rollback");}));assertEquals(0,jdbc.queryForObject("SELECT COUNT(*) FROM event_outbox",Integer.class));
   Long id=bookings.book(userId,scheduleId,null,null);assertEquals(1,jdbc.queryForObject("SELECT COUNT(*) FROM event_outbox",Integer.class));
+  makeOutboxDue();
   doThrow(new IllegalStateException("controlled handler failure")).when(notifications).onMessage(any());assertEquals(0,dispatcher.drain(10));assertEquals(1,jdbc.queryForObject("SELECT attempts FROM event_outbox",Integer.class));assertEquals(0,jdbc.queryForObject("SELECT COUNT(*) FROM notification",Integer.class));
-  reset(notifications);jdbc.update("UPDATE event_outbox SET next_attempt_at=CURRENT_TIMESTAMP");assertEquals(1,dispatcher.drain(10));assertEquals(1,jdbc.queryForObject("SELECT COUNT(*) FROM notification",Integer.class));jdbc.update("UPDATE event_outbox SET state='PENDING',next_attempt_at=CURRENT_TIMESTAMP");assertEquals(1,dispatcher.drain(10));assertEquals(1,jdbc.queryForObject("SELECT COUNT(*) FROM notification",Integer.class));assertEquals("BOOKED",bookingMapper.selectById(id).getStatus());
+  reset(notifications);makeOutboxDue();assertEquals(1,dispatcher.drain(10));assertEquals(1,jdbc.queryForObject("SELECT COUNT(*) FROM notification",Integer.class));
+  jdbc.update("UPDATE event_outbox SET state='PENDING'");makeOutboxDue();assertEquals(1,dispatcher.drain(10));assertEquals(1,jdbc.queryForObject("SELECT COUNT(*) FROM notification",Integer.class));assertEquals("BOOKED",bookingMapper.selectById(id).getStatus());
  }
  @Test void cancellationRebookingHasDistinctDurableEventKeys(){
-  Long first=bookings.book(userId,scheduleId,null,null);bookings.cancel(userId,first);Long second=bookings.book(userId,scheduleId,null,null);bookings.cancel(userId,first);assertEquals(3,jdbc.queryForObject("SELECT COUNT(*) FROM event_outbox",Integer.class));assertEquals(3,dispatcher.drain(100));assertEquals(3,jdbc.queryForObject("SELECT COUNT(*) FROM notification",Integer.class));assertEquals("BOOKED",bookingMapper.selectById(second).getStatus());
+  Long first=bookings.book(userId,scheduleId,null,null);bookings.cancel(userId,first);Long second=bookings.book(userId,scheduleId,null,null);bookings.cancel(userId,first);
+  assertEquals(3,jdbc.queryForObject("SELECT COUNT(*) FROM event_outbox",Integer.class));makeOutboxDue();
+  assertEquals(3,dispatcher.drain(100));assertEquals(3,jdbc.queryForObject("SELECT COUNT(*) FROM notification",Integer.class));assertEquals("BOOKED",bookingMapper.selectById(second).getStatus());
+ }
+ private void makeOutboxDue() {
+  // H2 rounds a MySQL-mode DATETIME to seconds, so set it strictly before the dispatch boundary.
+  jdbc.update("UPDATE event_outbox SET next_attempt_at=TIMESTAMPADD(SECOND,-1,CURRENT_TIMESTAMP)");
  }
  @Autowired org.springframework.context.ApplicationContext context;
  @Test void schedulerVisitsBeyondFirstTwoHundredAndFiveHundredRows(){
   var scheduler=context.getAutowireCapableBeanFactory().createBean(com.yoyi.pilates.infra.scheduler.PilatesScheduler.class);
-  jdbc.update("UPDATE course_schedule SET course_date=DATE_SUB(CURRENT_DATE,INTERVAL 1 DAY) WHERE id=?",scheduleId);
+  var today = com.yoyi.pilates.common.util.StudioTime.today();
+  jdbc.update("UPDATE course_schedule SET course_date=? WHERE id=?",today.minusDays(1),scheduleId);
   for(int n=0;n<205;n++)newSchedule(8,-1,10);
   scheduler.finishPassedSchedules();assertEquals(206,jdbc.queryForObject("SELECT COUNT(*) FROM course_schedule WHERE status='FINISHED'",Integer.class));
-  for(int n=0;n<505;n++){long id=newSchedule(8,0,10);jdbc.update("UPDATE course_schedule SET course_date=DATE_ADD(CURRENT_DATE,INTERVAL 1 DAY),start_time='00:01:00',end_time='00:02:00' WHERE id=?",id);}
+  for(int n=0;n<505;n++){long id=newSchedule(8,0,10);jdbc.update("UPDATE course_schedule SET course_date=?,start_time='00:01:00',end_time='00:02:00' WHERE id=?",today.plusDays(1),id);}
   // The early 500 future rows must not hide a later due record.
   long last=newSchedule(8,-1,12);scheduler.finishPassedSchedules();assertEquals("FINISHED",schedules.selectById(last).getStatus());
  }
@@ -100,7 +109,8 @@ class ProductionServiceTest extends BookingFixture {
  @Autowired com.yoyi.pilates.trade.application.OrderService orders;
  @MockitoSpyBean com.yoyi.pilates.marketing.application.CouponService couponSpy;
  @Test void timeoutOrderBatchContinuesBeyondFailedRowAndRollsBackThatOrder(){
-  for(int n=0;n<205;n++)jdbc.update("INSERT INTO `order`(order_no,user_id,total_amount,pay_amount,points_amount,status,created_at) VALUES(?,?,0,0,0,'PENDING',DATE_SUB(CURRENT_TIMESTAMP,INTERVAL 60 MINUTE))","historical-test-"+n,userId);
+  var expired = java.time.LocalDateTime.now().minusHours(1);
+  for(int n=0;n<205;n++)jdbc.update("INSERT INTO `order`(order_no,user_id,total_amount,pay_amount,points_amount,status,created_at) VALUES(?,?,0,0,0,'PENDING',?)","historical-test-"+n,userId,expired);
   jdbc.update("UPDATE `order` SET user_coupon_id=42 WHERE id=1");doThrow(new IllegalStateException("controlled restore failure")).when(couponSpy).restore(eq(42L),eq(1L));
   assertEquals(204,orders.closeTimeoutOrders(30));assertEquals("PENDING",jdbc.queryForObject("SELECT status FROM `order` WHERE id=1",String.class));assertEquals("CLOSED",jdbc.queryForObject("SELECT status FROM `order` WHERE id=205",String.class));
   reset(couponSpy);jdbc.update("UPDATE `order` SET user_coupon_id=NULL WHERE id=1");assertEquals(1,orders.closeTimeoutOrders(30));assertEquals(0,orders.closeTimeoutOrders(30));

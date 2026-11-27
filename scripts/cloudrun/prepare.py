@@ -24,12 +24,12 @@ def prepare(artifact, output_root):
         raise ValueError('reviewed jar checksum mismatch')
     listed = subprocess.check_output([
         'git', 'ls-files', '--cached', '--others', '--exclude-standard', '-z',
-        '--', 'backend/src/main', 'backend/pom.xml',
+        '--', 'server/src/main', 'server/pom.xml',
     ], cwd=ROOT).decode().split('\0')
     current = {name for name in listed if name and (ROOT / name).is_file()}
     expected = {
         name for name in source_manifest['sourceHashes']
-        if name.startswith('backend/src/main/') or name == 'backend/pom.xml'
+        if name.startswith('server/src/main/') or name == 'server/pom.xml'
     }
     if current != expected or any(digest(ROOT / name) != source_manifest['sourceHashes'][name] for name in expected):
         raise ValueError('server source changed; build and verify a new Java artifact first')
@@ -108,14 +108,10 @@ def prepare(artifact, output_root):
 
 if __name__ == '__main__':
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument('--artifact', type=pathlib.Path, help='Reviewed local build directory')
+    current = ROOT / 'build-artifacts/current-cloudrun-release-path.txt'
+    if not current.exists():
+        current = ROOT / 'build-artifacts/current-production-path.txt'
+    p.add_argument('--artifact', type=pathlib.Path, default=pathlib.Path(current.read_text().strip()))
     p.add_argument('--output-root', type=pathlib.Path, default=ROOT / 'build-artifacts')
     a = p.parse_args()
-    if a.artifact is None:
-        current = ROOT / 'build-artifacts/current-cloudrun-release-path.txt'
-        if not current.is_file():
-            current = ROOT / 'build-artifacts/current-production-path.txt'
-        if not current.is_file():
-            p.error('--artifact is required when there is no recorded local build')
-        a.artifact = pathlib.Path(current.read_text().strip())
     prepare(a.artifact, a.output_root)

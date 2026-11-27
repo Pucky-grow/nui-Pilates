@@ -6,7 +6,7 @@ def verify(root, build, env, dbsql, redis_port, redis_password, output):
     props={p.attrib['name']:p.attrib.get('value','') for p in ET.parse(reports[0]).findall('properties/property')}
     classpath=props['java.class.path'];children=[];snapshots=[]
     if not env['SPRING_DATASOURCE_URL'].startswith('jdbc:mysql://127.0.0.1:'):raise RuntimeError('owned loopback database required')
-    dbsql((root/'backend/src/test/resources/reset-mysql.sql').read_text())
+    dbsql((root/'server/src/test/resources/reset-mysql.sql').read_text())
     dbname=env['SPRING_DATASOURCE_URL'].split('/',3)[3].split('?')[0]
     dbsql((root/'database/init_data.sql').read_text().replace('yoyi_pilates',dbname))
     # Remove only disposable sample schedules, then construct legal nonoverlapping test lessons.
@@ -29,7 +29,7 @@ def verify(root, build, env, dbsql, redis_port, redis_password, output):
         data=dbsql('SELECT booked_count,max_capacity,(SELECT COUNT(*) FROM booking WHERE schedule_id='+str(ids[0])+" AND deleted=0 AND status IN ('BOOKED','SIGNED_IN','COMPLETED','NO_SHOW')) FROM course_schedule WHERE id="+str(ids[0])).split('\t')
         snapshots.append({'name':name,'attempts':attempts,'successes':successes,'failures':failures,'databaseBooked':int(data[0]),'capacity':int(data[1]),'occupiedCount':int(data[2]),'redisStock':redis('GET',stock_key)})
     # Keep keys identical to RedisKeys.java; verified by a direct snapshot after booking.
-    keys_source=(root/'backend/src/main/java/com/yoyi/pilates/common/constant/RedisKeys.java').read_text()
+    keys_source=(root/'server/src/main/java/com/yoyi/pilates/common/constant/RedisKeys.java').read_text()
     import re
     prefix=re.search(r'PREFIX = "([^"]+)"',keys_source).group(1)
     assert 'return PREFIX + "stock:" + scheduleId;' in keys_source

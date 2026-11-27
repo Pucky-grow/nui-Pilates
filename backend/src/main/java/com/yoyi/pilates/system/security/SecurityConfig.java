@@ -3,6 +3,7 @@ package com.yoyi.pilates.system.security;
 import com.yoyi.pilates.common.result.Result;
 import com.yoyi.pilates.common.result.ResultCode;
 import com.yoyi.pilates.common.util.JsonUtils;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,9 +31,11 @@ import java.nio.charset.StandardCharsets;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtFilter;
+    private final MeterRegistry metrics;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtFilter) {
+    public SecurityConfig(JwtAuthenticationFilter jwtFilter, MeterRegistry metrics) {
         this.jwtFilter = jwtFilter;
+        this.metrics = metrics;
     }
 
     @Bean
@@ -69,6 +72,7 @@ public class SecurityConfig {
     }
 
     private void writeJson(HttpServletResponse response, ResultCode rc) throws IOException {
+        metrics.counter("pilates.api.errors", "code", String.valueOf(rc.getCode())).increment();
         response.setStatus(HttpServletResponse.SC_OK);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());

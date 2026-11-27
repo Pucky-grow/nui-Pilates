@@ -1,4 +1,4 @@
-# Optional local/internal monitoring. No published ports and no external notifications.
+# Optional monitoring overlay. Operator notifications use the supplied webhook file.
 services:
   prometheus:
     image: ${PROMETHEUS_IMAGE:?Set independently reviewed and scanned immutable monitoring image}
@@ -19,5 +19,29 @@ services:
       - prometheus-data:/prometheus
     command: ["--config.file=/etc/prometheus/prometheus.yml", "--storage.tsdb.path=/prometheus", "--storage.tsdb.retention.time=7d", "--storage.tsdb.retention.size=512MB", "--web.listen-address=:9090"]
     networks: [private]
+    depends_on: [alertmanager]
+  alertmanager:
+    image: ${ALERTMANAGER_IMAGE:?Set reviewed immutable Alertmanager image}
+    profiles: [monitoring]
+    user: "65534:65534"
+    restart: unless-stopped
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 128m
+    cpus: 0.2
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "3"}
+    volumes:
+      - ./monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager-data:/alertmanager
+    secrets: [alert_webhook_url]
+    command: ["--config.file=/etc/alertmanager/alertmanager.yml", "--storage.path=/alertmanager", "--cluster.listen-address="]
+    networks: [private]
 volumes:
   prometheus-data:
+  alertmanager-data:
+secrets:
+  alert_webhook_url:
+    file: ${ALERT_WEBHOOK_URL_FILE:?Set protected operator webhook URL file}

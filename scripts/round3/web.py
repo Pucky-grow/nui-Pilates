@@ -26,7 +26,7 @@ try:
  with tempfile.TemporaryDirectory(prefix='p3-web-') as directory,contextlib.ExitStack() as stack:
   temp=pathlib.Path(directory);vport=a.vite_port or port();env={**os.environ,'VITE_API_TARGET':'http://127.0.0.1:'+str(a.backend_port)}
   log=stack.enter_context((temp/'vite.log').open('w'))
-  vite=subprocess.Popen(['node',str(ROOT/'frontend/admin/node_modules/vite/bin/vite.js'),'--host','127.0.0.1','--port',str(vport),'--strictPort'],cwd=ROOT/'frontend/admin',env=env,stdout=log,stderr=log);children.append(vite)
+  vite=subprocess.Popen(['node',str(ROOT/'admin/node_modules/vite/bin/vite.js'),'--host','127.0.0.1','--port',str(vport),'--strictPort'],cwd=ROOT/'admin',env=env,stdout=log,stderr=log);children.append(vite)
   wait('http://127.0.0.1:'+str(vport),vite)
   result=browser('http://127.0.0.1:'+str(vport)+'/tests/round3.html','vite-browser')
   report['vite']={'status':'passed','checks':result['results'],'scheduleId':result['scheduleId'],'bookingId':result['bookingId'],'proxy':'actual Vite /api to owned backend'}
@@ -35,11 +35,11 @@ try:
   nginx=os.environ.get('PILATES_NGINX_BIN')
   if nginx:
    nginx=pathlib.Path(nginx).resolve();http_port,https_port,admin_port=port(),a.https_port or port(),port()
-   build=subprocess.run(['npm','run','build'],cwd=ROOT/'frontend/admin',capture_output=True,text=True,timeout=60)
+   build=subprocess.run(['npm','run','build'],cwd=ROOT/'admin',capture_output=True,text=True,timeout=60)
    if build.returncode:raise RuntimeError('admin production build failed')
    openssl=subprocess.run(['openssl','req','-x509','-newkey','rsa:2048','-nodes','-keyout',str(temp/'key.pem'),'-out',str(temp/'cert.pem'),'-days','1','-subj','/CN=localhost','-addext','subjectAltName=IP:127.0.0.1,DNS:localhost'],capture_output=True,text=True)
    if openssl.returncode:raise RuntimeError('local test certificate generation failed')
-   inner=(ROOT/'frontend/admin/nginx.conf').read_text().replace('listen 80;','listen 127.0.0.1:'+str(admin_port)+';').replace('/usr/share/nginx/html',str(ROOT/'frontend/admin/dist'))
+   inner=(ROOT/'admin/nginx.conf').read_text().replace('listen 80;','listen 127.0.0.1:'+str(admin_port)+';').replace('/usr/share/nginx/html',str(ROOT/'admin/dist'))
    outer=(ROOT/'deploy/nginx.conf').read_text().replace('/etc/nginx/mime.types',str(nginx.parent.parent/'conf/mime.types')).replace('listen 80;','listen 127.0.0.1:'+str(http_port)+';').replace('listen 443 ssl;','listen 127.0.0.1:'+str(https_port)+' ssl;').replace('/etc/nginx/certs/fullchain.pem',str(temp/'cert.pem')).replace('/etc/nginx/certs/privkey.pem',str(temp/'key.pem')).replace('http://server:8080','http://127.0.0.1:'+str(a.backend_port)).replace('http://admin:80','http://127.0.0.1:'+str(admin_port)).replace('https://$host$request_uri','https://$host:'+str(https_port)+'$request_uri').replace('http {','http {\naccess_log off;\n'+inner,1)
    cfg=temp/'nginx.conf';cfg.write_text('pid '+str(temp/'nginx.pid')+';\nerror_log '+str(temp/'nginx-error.log')+';\n'+outer)
    log=stack.enter_context((temp/'nginx-process.log').open('w'))

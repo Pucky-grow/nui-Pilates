@@ -25,6 +25,44 @@ def port():
         s.bind(('127.0.0.1',0)); return s.getsockname()[1]
 def run(args, **kw):
     return subprocess.run([str(a) for a in args],capture_output=True,text=True,**kw)
+
+DEMO_ACCOUNTS = {
+    'admin': ('ADMIN', '系统管理员'), 'coach01': ('COACH', '王老师'),
+    'manager': ('STORE_MANAGER', '张店长'), 'staff': ('STAFF', '李前台'),
+}
+LEGACY_DEMO_HASH_SHA256 = '738b577e5368284d8dbb7393bf2213c300e8b4414a88a42253ff4a21b01f6006'
+
+def provision_demo_accounts(sql, database, fresh=False):
+    use_db = f'USE `{database}`;\n'
+    names = ','.join(f"'{name}'" for name in DEMO_ACCOUNTS)
+    legacy_condition = f"deleted=0 AND SHA2(password,256)='{LEGACY_DEMO_HASH_SHA256}'"
+    names_to_rotate = [] if fresh else sql(use_db + f'SELECT username FROM sys_user WHERE {legacy_condition} AND username IN ({names})').splitlines()
+    pending = [name for name in DEMO_ACCOUNTS if fresh or name in names_to_rotate]
+    if not pending:
+        return
+
+    accounts = read('demo-accounts.json')
+    commands = ['START TRANSACTION;']
+    for username in pending:
+        password = accounts.setdefault(username, 'Local7!' + secrets.token_hex(20))
+        encoded = run(['htpasswd', '-niBC', '12', username], input=password + '\n')
+        digest = encoded.stdout.strip().partition(':')[2]
+        if encoded.returncode or not re.fullmatch(r'\$2[aby]\$12\$[./A-Za-z0-9]{53}', digest):
+            raise RuntimeError('Generating local demo accounts requires htpasswd with BCrypt support')
+        if fresh:
+            role, display_name = DEMO_ACCOUNTS[username]
+            commands.extend([
+                f"INSERT INTO sys_user(username,password,name,status) VALUES('{username}','{digest}','{display_name}','ACTIVE');",
+                f"INSERT INTO sys_user_role(user_id,role_id) SELECT u.id,r.id FROM sys_user u JOIN sys_role r ON r.code='{role}' WHERE u.username='{username}';",
+            ])
+        else:
+            commands.append(f"UPDATE sys_user SET password='{digest}',auth_version=auth_version+1 WHERE username='{username}' AND {legacy_condition};")
+    if fresh:
+        commands.append("UPDATE coach c JOIN sys_user u ON u.username='coach01' SET c.sys_user_id=u.id WHERE c.id=1;")
+    commands.append('COMMIT;')
+    save('demo-accounts.json', accounts)
+    sql(use_db + '\n'.join(commands))
+
 def http(path, body=None):
     req = urllib.request.Request('http://127.0.0.1:8090'+path, data=json.dumps(body).encode() if body is not None else None, headers={'Content-Type':'application/json'})
     with urllib.request.urlopen(req,timeout=3) as response: return json.load(response)
@@ -85,7 +123,8 @@ def serve():
                 raise RuntimeError('Incomplete earlier initialization: inspect private database; no seed replayed')
             sql((ROOT/'database/schema.sql').read_text().replace('yoyi_pilates',db))
             sql((ROOT/'database/init_data.sql').read_text().replace('yoyi_pilates',db))
-            sql('USE `'+db+"`; INSERT INTO course_coach(course_id,coach_id,status,qualification_source,approved_by,approved_at,remark) VALUES(1,1,'APPROVED','ADMIN',1,NOW(),'本地隔离联调'),(7,1,'APPROVED','ADMIN',1,NOW(),'本地隔离联调');")
+            provision_demo_accounts(sql, db, fresh=True)
+            sql('USE `'+db+"`; INSERT INTO course_coach(course_id,coach_id,status,qualification_source,approved_by,approved_at,remark) SELECT c.id,1,'APPROVED','ADMIN',u.id,NOW(),'本地隔离联调' FROM course c JOIN sys_user u ON u.username='admin' WHERE c.id IN(1,7);")
             sql("CREATE USER 'local_app'@'localhost' IDENTIFIED BY '"+credentials['app']+"'; GRANT ALL ON `"+db+"`.* TO 'local_app'@'localhost';")
             save('initialized.json',{'database':db,'mysqlVersion':baseline['version']})
         # Only our marked, datadir-verified local fixture may receive this additive schema extension.
@@ -96,6 +135,7 @@ def serve():
         # A partially applied extension always stops; never silently starts a mismatched app.
         if sql("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='"+db+"' AND table_name IN ('file_object','event_outbox','notification_delivery')") != '3':
             raise RuntimeError('Incomplete local delivery extension; inspect schema before starting')
+        provision_demo_accounts(sql, db)
         ledger_tables=re.findall(r"(?m)^CREATE TABLE (studio_\w+)",(ROOT/'database/production/V004__studio_ledger.sql').read_text())
         table_list=','.join("'"+name+"'" for name in ledger_tables)
         count=int(sql("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='"+db+"' AND table_name IN ("+table_list+")"))
@@ -111,7 +151,7 @@ def serve():
         env={**os.environ,'JAVA_HOME':str(JAVA),'SPRING_PROFILES_ACTIVE':'dev','SERVER_ADDRESS':'127.0.0.1','SERVER_PORT':'8090','SPRING_DATASOURCE_URL':f'jdbc:mysql://127.0.0.1:{mysql_port}/{db}?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true','SPRING_DATASOURCE_DRIVER_CLASS_NAME':'com.mysql.cj.jdbc.Driver','SPRING_DATASOURCE_USERNAME':'local_app','SPRING_DATASOURCE_PASSWORD':credentials['app'],'SPRING_SQL_INIT_MODE':'never','STUDIO_LEDGER_ENABLED':'true','SPRING_DATA_REDIS_HOST':'127.0.0.1','SPRING_DATA_REDIS_PORT':str(redis_port),'SPRING_DATA_REDIS_PASSWORD':credentials['redis'],'SPRING_DATA_REDIS_DATABASE':'0','YOYI_MQ_TYPE':'memory','YOYI_SCHEDULING_ENABLED':'false','YOYI_WX_MOCK_LOGIN':'true','YOYI_PAY_MOCK_ENABLED':'false','YOYI_SMS_MOCK_ENABLED':'false','YOYI_SALES_PACKAGE_ENABLED':'false','YOYI_JWT_SECRET':credentials['jwt'],'JWT_SECRET':credentials['jwt'],'YOYI_UPLOAD_DIR':str(STATE/'uploads'),'LOGGING_LEVEL_COM_YOYI_PILATES':'warn'}
         build=STATE/'build'
         with (STATE/'build.log').open('w') as output:
-            result=subprocess.run(['mvn','-o','-q','-f',str(ROOT/'backend/pom.xml'),'-Dpilates.build.directory='+str(build),'-Dmaven.test.skip=true','package'],env=env,stdout=output,stderr=output)
+            result=subprocess.run(['mvn','-o','-q','-f',str(ROOT/'server/pom.xml'),'-Dpilates.build.directory='+str(build),'-Dmaven.test.skip=true','package'],env=env,stdout=output,stderr=output)
         if result.returncode: raise RuntimeError('Build failed; inspect private build.log')
         backend=spawn([JAVA/'bin/java','-Xmx512m','-jar',build/'pilates-server.jar'], 'backend.log',env)
         wait(backend, lambda:http('/api/booking-rules').get('code')==0,120)

@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router';
+import { adminToken } from '../utils/adminSession';
 
 const routes = [
   { path: '/login', component: () => import('../views/Login.vue') },
@@ -30,8 +31,7 @@ const routes = [
 const router = createRouter({ history: createWebHistory(), routes });
 
 router.beforeEach((to, from, next) => {
-  const token = localStorage.getItem('adminToken');
-  if (to.path !== '/login' && !token) next('/login');
+  if (to.path !== '/login' && !adminToken()) next('/login');
   else next();
 });
 

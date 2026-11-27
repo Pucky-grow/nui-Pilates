@@ -11,12 +11,12 @@ p.add_argument('--output-directory', type=pathlib.Path, help='Separate evidence 
 p.add_argument('--probe-only', action='store_true', help='Record SQL version of another locally owned disposable engine, no compatibility assertion')
 p.add_argument('--sql-only', action='store_true')
 p.add_argument('--online-maven', action='store_true', help='Allow resolving new pinned dependency/plugin versions from Maven Central')
-p.add_argument('--report-file', default='mysql8-acceptance.json', help='Report filename under backend/target-round3')
+p.add_argument('--report-file', default='mysql8-acceptance.json', help='Report filename under server/target-round3')
 p.add_argument('--skip-processes', action='store_true', help='Skip the additional two-OS-process booking/restart check; report scope explicitly')
 p.add_argument('--tests', default='RoundOneConsistencyTest,SchedulingAndFreeFlowTest,MemberHttpBoundaryTest,MemberAndTrainingBoundaryTest,Round3AcceptanceTest,Round3HttpTest,Round3ConfigurationTest,Round3FreshDatabaseTest')
 a = p.parse_args()
 if pathlib.Path(a.report_file).name != a.report_file:p.error('--report-file must be a filename')
-OUT = a.output_directory.resolve() if a.output_directory else ROOT/'backend/target-round3'; OUT.mkdir(parents=True,exist_ok=True)
+OUT = a.output_directory.resolve() if a.output_directory else ROOT/'server/target-round3'; OUT.mkdir(parents=True,exist_ok=True)
 report = {'testSelection':a.tests,'status':'running','productionDatabaseTouched':False,'isolated':True,'baseline':BASE,'cases':[]}
 def redact_outputs():
     for pattern in ('*.log','surefire-reports/*.xml','surefire-reports/*.txt'):
@@ -170,7 +170,7 @@ try:
                 url='jdbc:mysql://127.0.0.1:'+str(mysql_port)+'/'+db+'?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true'
                 env={**os.environ,'PILATES_TEST_MYSQL_URL':url,'PILATES_TEST_MYSQL_FRESH_URL':url.replace('/'+db+'?','/'+fresh_db+'?'),'SPRING_DATASOURCE_URL':url,'SPRING_DATASOURCE_DRIVER_CLASS_NAME':'com.mysql.cj.jdbc.Driver','SPRING_DATASOURCE_USERNAME':'round3_tests','SPRING_DATASOURCE_PASSWORD':password,'SPRING_SQL_INIT_MODE':'never','PILATES_TEST_REDIS_PORT':str(redis_port),'PILATES_TEST_REDIS_PASSWORD':redis_password,'SPRING_DATA_REDIS_HOST':'127.0.0.1','SPRING_DATA_REDIS_PORT':str(redis_port),'SPRING_DATA_REDIS_PASSWORD':redis_password,'SPRING_DATA_REDIS_DATABASE':'15','SPRING_PROFILES_ACTIVE':'junit','YOYI_MQ_TYPE':'memory','YOYI_WX_MOCK_LOGIN':'true','YOYI_PAY_MOCK_ENABLED':'true','YOYI_SMS_MOCK_ENABLED':'false','YOYI_SCHEDULING_ENABLED':'false'}
                 settings=run(['java','-XshowSettings:properties','-version']); env['JAVA_HOME']=os.environ.get('PILATES_TEST_JAVA_HOME',re.search(r'java.home = (.+)',settings.stderr).group(1))
-                command_mvn=['mvn',* ([] if a.online_maven else ['-o']),'-q','-f',str(ROOT/'backend/pom.xml'),'-Dpilates.build.directory='+str(build),'-Dtest='+a.tests,'test']
+                command_mvn=['mvn',* ([] if a.online_maven else ['-o']),'-q','-f',str(ROOT/'server/pom.xml'),'-Dpilates.build.directory='+str(build),'-Dtest='+a.tests,'test']
                 report['redisBinaryVersion']=run(['redis-server','--version']).stdout.strip()
                 print('Running related JUnit and real HTTP tests on owned MySQL '+BASE['version']+' / Redis (loopback only)',flush=True)
                 with (OUT/'integration.log').open('w') as log:
@@ -189,7 +189,7 @@ try:
                             (OUT/name).write_text(''.join(json.dumps(value,ensure_ascii=False)+'\n' for value in records.values()))
                         else:shutil.copy2(source,OUT/name)
                 redact_outputs()
-                if result.returncode: raise RuntimeError('JUnit failed; see backend/target-round3/integration.log and surefire reports')
+                if result.returncode: raise RuntimeError('JUnit failed; see server/target-round3/integration.log and surefire reports')
                 case('selected JUnit suites completed against the owned test environment',command='python3 scripts/round3/accept.py --mysql-bin <MySQL8 bin>')
                 if not a.skip_processes:
                     sys.path.insert(0,str(ROOT/'scripts/round3'))

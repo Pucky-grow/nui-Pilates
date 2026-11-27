@@ -1,6 +1,7 @@
 package com.yoyi.pilates.member.interfaces;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.yoyi.pilates.common.annotation.OpLog;
 import com.yoyi.pilates.common.exception.BusinessException;
@@ -150,9 +151,17 @@ public class AdminMemberController {
             if("DISABLED".equals(status)) user.setStatus("DISABLED");
             else if("DISABLED".equals(user.getStatus())) user.setStatus("ACTIVE");
         }
-        if(body.containsKey("validUntil") && member.getValidUntil()==null)
-            memberMapper.update(null,new com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper<MemberEntity>().eq(MemberEntity::getId,member.getId()).set(MemberEntity::getValidUntil,null));
-        if(memberMapper.updateById(member)!=1 || userMapper.updateById(user)!=1) throw BusinessException.of(ResultCode.CONFLICT);
+        if (body.get("levelId") != null || body.containsKey("validUntil") || body.get("status") != null) {
+            // Only profile fields are writable here. A class may finish while this edit is in progress.
+            int updated = memberMapper.update(null, new LambdaUpdateWrapper<MemberEntity>()
+                    .eq(MemberEntity::getId, member.getId())
+                    .set(body.get("levelId") != null, MemberEntity::getLevelId, member.getLevelId())
+                    .set(body.containsKey("validUntil"), MemberEntity::getValidUntil, member.getValidUntil())
+                    .set(body.get("status") != null, MemberEntity::getStatus, member.getStatus())
+                    .set(MemberEntity::getUpdatedAt, com.yoyi.pilates.common.util.StudioTime.now()));
+            if (updated != 1) throw BusinessException.of(ResultCode.CONFLICT);
+        }
+        if (userMapper.updateById(user) != 1) throw BusinessException.of(ResultCode.CONFLICT);
         var audit=new com.yoyi.pilates.system.infrastructure.entity.OperationLogEntity();
         var actor=SecurityUtils.requireUser();audit.setOperatorId(actor.getId());audit.setOperatorName(actor.getType()+":"+actor.getName());
         audit.setModule("member");audit.setAction("profile_change");audit.setTargetId(userId.toString());

@@ -11,8 +11,8 @@ manifest = json.loads((release / 'manifest.json').read_text())
 digest = lambda value: hashlib.sha256(value).hexdigest()
 if digest((release / 'pilates-server.jar').read_bytes()) != manifest['jarSha256']:
     raise SystemExit('STOP: artifact checksum mismatch')
-runtime_prefixes = ('backend/src/main/', 'frontend/admin/src/', 'frontend/miniprogram/', 'database/production/')
-runtime_files = {'backend/pom.xml', 'frontend/admin/package.json', 'frontend/admin/package-lock.json', 'frontend/admin/nginx.conf',
+runtime_prefixes = ('server/src/main/', 'admin/src/', 'miniprogram/', 'database/production/')
+runtime_files = {'server/pom.xml', 'admin/package.json', 'admin/package-lock.json', 'admin/nginx.conf',
                  'deploy/Dockerfile.server.artifact', 'deploy/Dockerfile.admin.artifact',
                  'deploy/Dockerfile.edge', 'deploy/nginx.conf'}
 for name, expected in manifest['sourceHashes'].items():
@@ -30,7 +30,8 @@ for raw in sorted(names):
         continue
     name = raw.decode()
     if not (name == 'README.md' or name.startswith(('deploy/', 'database/production/', 'database/check_', 'scripts/production/',
-             'scripts/round3/', 'docs/'))):
+             'scripts/round3/', 'docs/PRODUCTION', 'docs/production-readiness', 'docs/ALIYUN-',
+             'docs/GO-LIVE-', 'docs/WECHAT-', 'docs/evidence/production/'))):
         continue
     source = ROOT / name
     if not source.is_file() or source.is_symlink():

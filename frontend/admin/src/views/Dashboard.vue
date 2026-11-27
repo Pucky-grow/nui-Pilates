@@ -20,10 +20,9 @@
 import { ref, onMounted } from 'vue';
 import * as echarts from 'echarts';
 import http from '../utils/request';
+import { hasAdminPermission } from '../utils/adminSession';
 
-const roles=JSON.parse(localStorage.getItem('adminRoles')||'[]');
-const permissions=JSON.parse(localStorage.getItem('adminPerms')||'[]');
-const canReadStatistics=roles.includes('ADMIN')||permissions.includes('statistics:view');
+const canReadStatistics = hasAdminPermission('statistics:view');
 const cards = ref([]);
 const topCourses = ref([]);
 const chart = ref(null);

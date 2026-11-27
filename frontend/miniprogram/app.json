@@ -76,6 +76,7 @@
         "rules/rules",
         "members/members",
         "studio-ledger/studio-ledger",
+        "ledger-overview/ledger-overview",
         "late-fees/late-fees",
         "member-detail/member-detail",
         "categories/categories",

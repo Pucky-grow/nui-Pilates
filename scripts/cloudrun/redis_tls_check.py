@@ -32,7 +32,7 @@ def main():
    else:raise RuntimeError('local TLS fixture not ready; values withheld')
    env={**os.environ,'JAVA_HOME':a.java_home,'PILATES_REDIS_TLS_FIXTURE':'true','PILATES_REDIS_TLS_PASSWORD':password,'PILATES_REDIS_TLS_PORT':port,'PILATES_REDIS_TLS_CA':str(d/'ca.pem')}
    with (a.report.parent/'redis-tls-maven.log').open('w') as log:
-    tested=subprocess.run(['mvn','-B','-ntp','-f',str(ROOT/'backend/pom.xml'),'-Dtest=RedissonTlsTest','test'],env=env,stdout=log,stderr=log,timeout=240)
+    tested=subprocess.run(['mvn','-B','-ntp','-f',str(ROOT/'server/pom.xml'),'-Dtest=RedissonTlsTest','test'],env=env,stdout=log,stderr=log,timeout=240)
    if tested.returncode:raise RuntimeError('TLS regression tests failed; see local test report')
    result.update(status='passed',cases=['Lettuce authenticated TLS PING','Redisson authenticated TLS lock/unlock','wrong server address rejected','untrusted CA rejected','TLS/ACL/empty-auth configuration boundaries'])
   except Exception as e:
