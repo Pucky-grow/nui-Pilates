@@ -48,6 +48,8 @@ public class CourseCoachService {
             m.put("courseId", r.getCourseId());
             m.put("courseName", c != null ? c.getName() : "未知课程");
             m.put("courseType", c != null ? c.getType() : "");
+            m.put("courseStatus", c != null ? c.getStatus() : "OFF_SHELF");
+            m.put("durationMinutes", c != null ? c.getDurationMinutes() : null);
             m.put("status", r.getStatus());
             m.put("qualificationSource", r.getQualificationSource());
             return m;

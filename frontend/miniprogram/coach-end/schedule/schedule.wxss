@@ -1,3 +1,5 @@
+.head { display: flex; gap: 16rpx; margin-bottom: 12rpx; }
+.head button { flex: 1; margin: 0; }
 .filter-bar { display: flex; gap: 16rpx; padding: 16rpx 24rpx; white-space: nowrap; overflow-x: auto; }
 .fb-item { padding: 8rpx 26rpx; border-radius: 30rpx; background: #fff; color: var(--text-light); font-size: 24rpx; flex-shrink: 0; }
 .fb-item.on { background: var(--sage); color: #fff; }

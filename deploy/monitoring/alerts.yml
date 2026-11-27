@@ -4,26 +4,44 @@ groups:
       - alert: BackendScrapeMissing
         expr: up{job="pilates"} == 0
         for: 2m
+        labels: {severity: critical}
       - alert: BackendErrors
-        expr: sum(rate(pilates_api_errors_total{code="50000"}[5m])) > 0.02
+        expr: sum by(job,instance) (rate(pilates_api_errors_total{job="pilates",code="50000"}[5m])) > 0.02
         for: 5m
+        labels: {severity: warning}
       - alert: BackendSlow
-        expr: sum(rate(http_server_requests_seconds_sum[5m])) / clamp_min(sum(rate(http_server_requests_seconds_count[5m])),1) > 1
+        expr: >-
+          sum by(job,instance) (rate(http_server_requests_seconds_sum{job="pilates"}[5m]))
+          / sum by(job,instance) (rate(http_server_requests_seconds_count{job="pilates"}[5m])) > 1
         for: 5m
+        labels: {severity: warning}
+      - alert: OutboxMetricsMissing
+        expr: >-
+          (up{job="pilates",event_delivery="outbox"} == 1) unless on(job,instance)
+          ((pilates_outbox_failed{job="pilates"} >= 0) and on(job,instance)
+          (pilates_outbox_oldest_seconds{job="pilates"} >= 0))
+        for: 5m
+        labels: {severity: warning}
       - alert: EventFailures
-        expr: pilates_outbox_failed > 0
+        expr: pilates_outbox_failed{job="pilates"} > 0
         for: 2m
+        labels: {severity: warning}
       - alert: EventBacklog
-        expr: pilates_outbox_oldest_seconds > 300
+        expr: pilates_outbox_oldest_seconds{job="pilates"} > 300
         for: 5m
+        labels: {severity: warning}
       - alert: TaskFailure
-        expr: increase(pilates_task_runs_total{result="failure"}[10m]) > 0
+        expr: increase(pilates_task_runs_total{job="pilates",result="failure"}[10m]) > 0
+        labels: {severity: warning}
       - alert: BookingCountMismatch
-        expr: pilates_booking_mismatches > 0
+        expr: pilates_booking_mismatches{job="pilates"} > 0
         for: 2m
+        labels: {severity: critical}
       - alert: DiskLow
-        expr: disk_free_bytes / disk_total_bytes < 0.15
+        expr: disk_free_bytes{job="pilates"} / disk_total_bytes{job="pilates"} < 0.15
         for: 10m
+        labels: {severity: warning}
       - alert: DatabasePoolExhausted
-        expr: hikaricp_connections_pending > 0
+        expr: hikaricp_connections_pending{job="pilates"} > 0
         for: 2m
+        labels: {severity: warning}

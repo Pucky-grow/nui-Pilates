@@ -4,6 +4,9 @@ No connection to the configured development/production MySQL or Redis is made.
 """
 import os, pathlib, secrets, shutil, socket, subprocess, sys, tempfile, time
 root = pathlib.Path(__file__).resolve().parents[1]
+online = '--online' in sys.argv[1:]
+goal = 'package' if '--package' in sys.argv[1:] else 'test'
+maven_args = [arg for arg in sys.argv[1:] if arg not in ('--online', '--package')]
 if not shutil.which('redis-server') or not shutil.which('mvn'):
     raise SystemExit('redis-server and mvn are required')
 with socket.socket() as probe:
@@ -25,17 +28,21 @@ with tempfile.TemporaryDirectory(prefix='pilates-isolated-') as directory:
                 time.sleep(.05)
             else: raise SystemExit('isolated Redis did not start')
             env = os.environ.copy()
+            if goal == 'package':
+                for fixture in ('PILATES_TEST_MYSQL_URL', 'PILATES_TEST_MYSQL_FRESH_URL', 'PILATES_LIVE_WEB_URL', 'PILATES_REDIS_TLS_FIXTURE'):
+                    env.pop(fixture, None)
             # Maven may use a newer Homebrew JDK than the java selected on PATH.
             settings = subprocess.run(['java', '-XshowSettings:properties', '-version'], capture_output=True, text=True)
             java_home = next((line.split('=', 1)[1].strip() for line in settings.stderr.splitlines() if 'java.home =' in line), None)
-            if java_home: env['JAVA_HOME'] = os.environ.get('PILATES_TEST_JAVA_HOME', java_home)
+            if java_home or env.get('PILATES_TEST_JAVA_HOME'):
+                env['JAVA_HOME'] = env.get('PILATES_TEST_JAVA_HOME') or env.get('JAVA_HOME') or java_home
             env.update(PILATES_TEST_REDIS_PORT=str(port), PILATES_TEST_REDIS_PASSWORD=password)
-            command = ['mvn', '-o', '-f', str(root / 'backend/pom.xml'),
-                '-Dpilates.build.directory=' + os.environ.get('PILATES_TEST_BUILD_DIR', str(root / 'backend/target-round2')), '-Dspring.profiles.active=junit',
+            command = ['mvn', '-B', '-ntp', *([] if online else ['-o']), '-f', str(root / 'server/pom.xml'),
+                '-Dpilates.build.directory=' + os.environ.get('PILATES_TEST_BUILD_DIR', str(root / 'server/target-round2')), '-Dspring.profiles.active=junit',
                 '-Dspring.datasource.url=jdbc:h2:mem:${random.uuid};MODE=MySQL;NON_KEYWORDS=USER,ORDER,MEMBER,TYPE;DB_CLOSE_DELAY=-1',
                 '-Dspring.datasource.driver-class-name=org.h2.Driver', '-Dspring.datasource.username=sa', '-Dspring.datasource.password=',
                 '-Dspring.data.redis.host=127.0.0.1', '-Dspring.data.redis.port=' + str(port), '-Dspring.data.redis.password=${PILATES_TEST_REDIS_PASSWORD}',
-                '-Dspring.data.redis.database=15', '-Dyoyi.scheduling.enabled=false'] + sys.argv[1:] + ['test']
+                '-Dspring.data.redis.database=15', '-Dyoyi.scheduling.enabled=false', *maven_args, goal]
             print('Isolated tests: H2 memory + owned Redis on port', port, flush=True)
             code = subprocess.run(command, cwd=root, env=env).returncode
         finally:

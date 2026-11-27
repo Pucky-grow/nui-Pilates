@@ -58,11 +58,13 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AuthenticationException.class)
     public Result<Void> handleAuth(AuthenticationException e) {
+        count(ResultCode.UNAUTHORIZED.getCode());
         return Result.error(ResultCode.UNAUTHORIZED);
     }
 
     @ExceptionHandler(AccessDeniedException.class)
     public Result<Void> handleAccessDenied(AccessDeniedException e) {
+        count(ResultCode.FORBIDDEN.getCode());
         return Result.error(ResultCode.FORBIDDEN);
     }
 
@@ -73,8 +75,16 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public Result<Void> handleUnknown(Exception e) {
-        count(50000);
-        log.error("未捕获异常 type={}", e.getClass().getName());
+        count(ResultCode.SYSTEM_ERROR.getCode());
+        log.error("未捕获异常", diagnosticTrace(e, 8));
         return Result.error(ResultCode.SYSTEM_ERROR);
+    }
+
+    private static Throwable diagnosticTrace(Throwable error, int depth) {
+        // Driver and HTTP exception messages can contain credentials, SQL values or signed URLs.
+        Throwable cause = depth > 1 && error.getCause() != null ? diagnosticTrace(error.getCause(), depth - 1) : null;
+        Throwable diagnostic = new RuntimeException(error.getClass().getName(), cause);
+        diagnostic.setStackTrace(error.getStackTrace());
+        return diagnostic;
     }
 }

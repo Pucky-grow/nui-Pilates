@@ -1,1 +1,7 @@
 @import "../management.wxss";
+
+.schedule-course-tools { margin: -6rpx 0 28rpx; }
+.course-actions { display: flex; flex-wrap: wrap; gap: 12rpx; }
+.course-actions .admin-action { font-size: 25rpx; padding: 10rpx 16rpx; }
+.qualification-action { width: fit-content; }
+.booking-fields { display: flex; flex-direction: column; gap: 14rpx; margin-top: 20rpx; }

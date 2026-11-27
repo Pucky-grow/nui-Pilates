@@ -1,0 +1,74 @@
+rule_files: [alerts.yml]
+evaluation_interval: 1m
+tests:
+  - interval: 1m
+    input_series:
+      - series: 'up{job="pilates",instance="down",event_delivery="outbox"}'
+        values: '0+0x15'
+      - series: 'up{job="pilates",instance="missing",event_delivery="outbox"}'
+        values: '1+0x15'
+      - series: 'up{job="pilates",instance="memory",event_delivery="memory"}'
+        values: '1+0x15'
+      - series: 'up{job="pilates",instance="active",event_delivery="outbox"}'
+        values: '1+0x15'
+      - series: 'pilates_api_errors_total{job="pilates",instance="active",code="50000"}'
+        values: '0+6x15'
+      - series: 'http_server_requests_seconds_sum{job="pilates",instance="active"}'
+        values: '0+3x15'
+      - series: 'http_server_requests_seconds_count{job="pilates",instance="active"}'
+        values: '0+1x15'
+      - series: 'pilates_outbox_failed{job="pilates",instance="active"}'
+        values: '2+0x15'
+      - series: 'pilates_outbox_oldest_seconds{job="pilates",instance="active"}'
+        values: '301+0x15'
+      - series: 'pilates_task_runs_total{job="pilates",instance="active",task="reconcile",result="failure"}'
+        values: '0+1x15'
+      - series: 'pilates_booking_mismatches{job="pilates",instance="active"}'
+        values: '1+0x15'
+      - series: 'disk_free_bytes{job="pilates",instance="active",path="/data/uploads"}'
+        values: '10+0x15'
+      - series: 'disk_total_bytes{job="pilates",instance="active",path="/data/uploads"}'
+        values: '100+0x15'
+      - series: 'hikaricp_connections_pending{job="pilates",instance="active",pool="HikariPool-1"}'
+        values: '5+0x15'
+    alert_rule_test:
+      - alertname: BackendScrapeMissing
+        eval_time: 15m
+        exp_alerts:
+          - exp_labels: {job: pilates, instance: down, event_delivery: outbox, severity: critical}
+      - alertname: BackendErrors
+        eval_time: 15m
+        exp_alerts:
+          - exp_labels: {job: pilates, instance: active, severity: warning}
+      - alertname: BackendSlow
+        eval_time: 15m
+        exp_alerts:
+          - exp_labels: {job: pilates, instance: active, severity: warning}
+      - alertname: OutboxMetricsMissing
+        eval_time: 15m
+        exp_alerts:
+          - exp_labels: {job: pilates, instance: missing, event_delivery: outbox, severity: warning}
+      - alertname: EventFailures
+        eval_time: 15m
+        exp_alerts:
+          - exp_labels: {job: pilates, instance: active, severity: warning}
+      - alertname: EventBacklog
+        eval_time: 15m
+        exp_alerts:
+          - exp_labels: {job: pilates, instance: active, severity: warning}
+      - alertname: TaskFailure
+        eval_time: 15m
+        exp_alerts:
+          - exp_labels: {job: pilates, instance: active, task: reconcile, result: failure, severity: warning}
+      - alertname: BookingCountMismatch
+        eval_time: 15m
+        exp_alerts:
+          - exp_labels: {job: pilates, instance: active, severity: critical}
+      - alertname: DiskLow
+        eval_time: 15m
+        exp_alerts:
+          - exp_labels: {job: pilates, instance: active, path: /data/uploads, severity: warning}
+      - alertname: DatabasePoolExhausted
+        eval_time: 15m
+        exp_alerts:
+          - exp_labels: {job: pilates, instance: active, pool: HikariPool-1, severity: warning}

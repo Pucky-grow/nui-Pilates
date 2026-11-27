@@ -1,8 +1,11 @@
 package com.yoyi.pilates.system.security;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -22,13 +25,15 @@ public class JwtService {
     private final SecretKey key;
     private final long mpTtl;
     private final long adminTtl;
+    private final MeterRegistry metrics;
 
     public JwtService(@Value("${yoyi.jwt.secret}") String secret,
                       @Value("${yoyi.jwt.mp-ttl}") long mpTtl,
-                      @Value("${yoyi.jwt.admin-ttl}") long adminTtl) {
+                      @Value("${yoyi.jwt.admin-ttl}") long adminTtl, MeterRegistry metrics) {
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         this.mpTtl = mpTtl;
         this.adminTtl = adminTtl;
+        this.metrics = metrics;
     }
 
     public String createToken(Long userId, String type) {
@@ -53,9 +58,12 @@ public class JwtService {
         try {
             return Jwts.parser().verifyWith(key).build()
                     .parseSignedClaims(token).getPayload();
-        } catch (Exception e) {
-            return null;
+        } catch (ExpiredJwtException e) {
+            metrics.counter("pilates.auth.token.rejections", "reason", "expired").increment();
+        } catch (JwtException | IllegalArgumentException e) {
+            metrics.counter("pilates.auth.token.rejections", "reason", "invalid").increment();
         }
+        return null;
     }
 
     public long ttlOf(String type) {

@@ -4,10 +4,12 @@ import static com.yoyi.pilates.ledger.LedgerRules.*;
 
 import com.yoyi.pilates.booking.application.BookingService;
 import com.yoyi.pilates.booking.application.ScheduleExecution;
+import com.yoyi.pilates.booking.interfaces.dto.ScheduledBookingRequest;
 import com.yoyi.pilates.common.exception.BusinessException;
 import com.yoyi.pilates.common.result.ResultCode;
 import com.yoyi.pilates.common.util.JsonUtils;
 import com.yoyi.pilates.common.util.StudioTime;
+import com.yoyi.pilates.course.application.ScheduleService;
 import com.yoyi.pilates.system.security.LoginUser;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -24,6 +26,7 @@ class StudioBookingFees {
     private final StudioLessonService lessons;
     private final StudioOfflineMembers members;
     private final BookingService bookings;
+    private final ScheduleService schedules;
     private final ScheduleExecution execution;
 
     record BookingInput(Long scheduleId, String reason, String quote) {}
@@ -76,6 +79,20 @@ class StudioBookingFees {
                     }
                     db.audit(actor, "OFFLINE_BOOK", bookingId, Map.of("memberId", memberId, "reason", reason,
                             "scheduleId", input.scheduleId(), "agreedTerms", terms != null));
+                    return bookingId;
+                }));
+    }
+
+    long bookWithSchedule(long memberId, long actor, String key, ScheduledBookingRequest input) {
+        long userId = members.userId(memberId);
+        return schedules.createAndBook(input.schedule(), userId, input.remark(), create ->
+                db.command(actor, key, "OFFLINE_SCHEDULE_BOOK", List.of(memberId, input), () -> {
+                    db.lockMember(memberId);
+                    if (members.userId(memberId) != userId) throw conflict("会员资料已变化，请返回会员账本重新预约");
+                    long bookingId = create.get();
+                    var booked = bookings.requireBooking(bookingId);
+                    db.audit(actor, "OFFLINE_SCHEDULE_BOOK", bookingId, Map.of("memberId", memberId,
+                            "reason", input.reason().trim(), "scheduleId", booked.getScheduleId()));
                     return bookingId;
                 }));
     }

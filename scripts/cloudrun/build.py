@@ -8,6 +8,7 @@ import os
 import pathlib
 import shutil
 import subprocess
+import sys
 import tempfile
 import zipfile
 
@@ -30,7 +31,8 @@ def main():
     if not any('version "' + version + '.' in settings for version in ('17', '21')):
         p.error('use an explicit installed JDK 17 or 21; artifact bytecode targets Java 17')
     subprocess.run(['python3', str(ROOT / 'scripts/production/secret-scan.py')], check=True)
-    selected = ['.gitignore', 'backend/pom.xml', 'backend/src', 'database/production', 'deploy/wechat-cloudrun', 'scripts/cloudrun']
+    selected = ['.gitignore', 'server/pom.xml', 'server/src', 'database/production', 'deploy/wechat-cloudrun', 'scripts/cloudrun',
+                'scripts/test-isolated.py']
     names = subprocess.check_output(['git', 'ls-files', '-c', '-o', '--exclude-standard', '-z', '--', *selected], cwd=ROOT).decode().split('\0')
     captured = {}
     for name in sorted(set(filter(None, names))):
@@ -40,7 +42,7 @@ def main():
         if path.is_file():
             captured[name] = path.read_bytes()
     hashes = {name: digest(value) for name, value in captured.items()}
-    ca_source = 'backend/src/main/resources/certificates/tencent-redis-ca.pem'
+    ca_source = 'server/src/main/resources/certificates/tencent-redis-ca.pem'
     ca_entry = 'BOOT-INF/classes/certificates/tencent-redis-ca.pem'
     if ca_source not in captured:
         raise ValueError('public Redis CA excluded from source snapshot; review the exact gitignore exception')
@@ -76,10 +78,9 @@ def main():
                 dest.write_bytes(value)
             env = {**os.environ, 'JAVA_HOME': str(java_home)}
             with (output / 'maven.log').open('w') as log:
-                command = ['mvn', '-B', '-ntp', '-f', str(snapshot / 'backend/pom.xml'),
+                command = [sys.executable, '-B', str(snapshot / 'scripts/test-isolated.py'), '--online', '--package',
                            '-Dpilates.build.directory=' + str(output / 'target'),
-                           '-Dproject.build.outputTimestamp=2026-11-01T00:00:00Z',
-                           '-Dtest=CosObjectStorageTest,ProductionGuardTest,CloudrunPrivateMysqlPolicyTest,CloudrunPreflightTest,RedissonTlsTest,WxMpClientTest,Round3ConfigurationTest,HomePlacementSqlTest,SystemConfigCacheCommitTest,CourseCategoryCompatibilityTest', 'package']
+                           '-Dproject.build.outputTimestamp=2026-11-01T00:00:00Z']
                 subprocess.run(command, env=env, stdout=log, stderr=log, check=True)
             jar = output / 'target/pilates-server.jar'
             with zipfile.ZipFile(jar) as archive:

@@ -36,7 +36,10 @@ Page({
       .then(list => this.setData({ schedules: list, loading: false }))
       .catch(e => this.setData({ loading: false, error: (e && e.message) || '课表加载失败，请重试' }));
   },
-  goCreate() { wx.navigateTo({ url: '/coach-end/schedule-create/schedule-create' }); },
+  goCreate(e) {
+    const mode = e.currentTarget.dataset.mode;
+    wx.navigateTo({ url: '/coach-end/schedule-create/schedule-create?date=' + this.data.fromDate + (mode === 'booking' ? '&mode=booking' : '') });
+  },
   goStudents(e) { wx.navigateTo({ url: '/coach-end/students/students?scheduleId=' + e.currentTarget.dataset.id }); },
   cancel(e) {
     const id = e.currentTarget.dataset.id;

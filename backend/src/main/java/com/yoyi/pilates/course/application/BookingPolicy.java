@@ -31,16 +31,29 @@ public class BookingPolicy {
                 "serverDate",StudioTime.today().toString(),"timezone","Asia/Shanghai");
     }
     public Decision evaluate(CourseScheduleEntity s) {
+        return evaluate(s, true);
+    }
+    private Decision evaluate(CourseScheduleEntity s, boolean useMemberWindow) {
         if (s == null) return no("NOT_FOUND","排课不存在");
-        return evaluate(s,courses.selectById(s.getCourseId()),coaches.selectById(s.getCoachId()),rooms.selectById(s.getClassroomId()));
+        return evaluate(s, courses.selectById(s.getCourseId()), coaches.selectById(s.getCoachId()),
+                rooms.selectById(s.getClassroomId()), useMemberWindow);
     }
     public Decision evaluate(CourseScheduleEntity s,CourseEntity course,CoachEntity coach,ClassroomEntity room) {
+        return evaluate(s, course, coach, room, true);
+    }
+    private Decision evaluate(CourseScheduleEntity s, CourseEntity course, CoachEntity coach, ClassroomEntity room,
+                              boolean useMemberWindow) {
         LocalDateTime now=StudioTime.now();
         if ("CANCELLED".equals(s.getStatus())) return no("CANCELLED","排课已取消");
         if ("FINISHED".equals(s.getStatus()) || !now.isBefore(LocalDateTime.of(s.getCourseDate(),s.getEndTime()))) return no("ENDED","课程已结束");
         if (!"SCHEDULED".equals(s.getStatus())) return no("UNAVAILABLE","排课状态不可约");
-        if (s.getCourseDate().isAfter(StudioTime.today().plusDays(advanceDays()))) return no("NOT_OPEN","尚未开放预约");
-        if (!now.isBefore(LocalDateTime.of(s.getCourseDate(),s.getStartTime()).minusMinutes(config.getInt("booking.deadline_minutes",30)))) return no("DEADLINE","已过预约截止时间");
+        LocalDateTime start = LocalDateTime.of(s.getCourseDate(), s.getStartTime());
+        if (useMemberWindow) {
+            if (s.getCourseDate().isAfter(StudioTime.today().plusDays(advanceDays()))) return no("NOT_OPEN","尚未开放预约");
+            if (!now.isBefore(start.minusMinutes(config.getInt("booking.deadline_minutes",30)))) return no("DEADLINE","已过预约截止时间");
+        } else if (!now.isBefore(start)) {
+            return no("DEADLINE", "课程已开始");
+        }
         if (course==null || !"ON_SHELF".equals(course.getStatus())) return no("COURSE_OFF_SHELF","课程已下架，暂停新增预约");
         if (coach==null || !"ACTIVE".equals(coach.getStatus())) return no("COACH_DISABLED","教练已停用，暂停新增预约");
         if (room==null || !"ACTIVE".equals(room.getStatus())) return no("ROOM_DISABLED","教室已停用，暂停新增预约");
@@ -57,7 +70,12 @@ public class BookingPolicy {
         return course != null && "PRIVATE".equals(course.getType()) ? 1 : schedule.getMaxCapacity();
     }
     public void requireBookable(CourseScheduleEntity schedule) {
-        Decision d=evaluate(schedule);
+        requireAvailable(evaluate(schedule));
+    }
+    public void requireStaffBookable(CourseScheduleEntity schedule) {
+        requireAvailable(evaluate(schedule, false));
+    }
+    private void requireAvailable(Decision d) {
         if (!d.bookable()) {
             ResultCode code = switch (d.code()) {
                 case "FULL" -> ResultCode.SCHEDULE_FULL;

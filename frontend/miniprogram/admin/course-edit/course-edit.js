@@ -28,6 +28,7 @@ Page({
     fields: [], busy: false, uploading: false, error: '', canEdit: false, canDelete: false
   },
   onLoad(q) {
+    this.returnToSchedule = q.fromSchedule === '1';
     this.setData({ id: q.id || '', canEdit: u.can(q.id ? 'course:update' : 'course:create'), canDelete: u.can('course:delete') });
     if (u.guard(q.id ? 'course:view' : 'course:create')) this.load();
   },
@@ -65,6 +66,12 @@ Page({
         await u.api.put('/admin/courses/' + this.data.id, body);
       } else {
         this.setData({ id: await u.api.post('/admin/courses', body) });
+      }
+      if (this.returnToSchedule) {
+        this.getOpenerEventChannel?.()?.emit('courseSaved', { id: this.data.id });
+        u.success();
+        wx.navigateBack();
+        return;
       }
       try {
         await this.read();

@@ -14,8 +14,8 @@ def main():
  with tempfile.TemporaryDirectory(prefix=name,dir=ROOT/'.secrets') as directory:
   directory=pathlib.Path(directory);directory.chmod(0o700)
   rootpw=secrets.token_hex(32);runtime=secrets.token_hex(20)+"'\\GRANTS_ADMIN_LITERAL!";admin=secrets.token_hex(32)
-  pw=directory/'rootpw';pw.write_text(rootpw);pw.chmod(0o444)
-  cnf=directory/'mysql.cnf';cnf.write_text('[client]\nuser=root\npassword='+rootpw+'\n');cnf.chmod(0o444)
+  pw=directory/'rootpw';pw.touch(mode=0o600);pw.write_text(rootpw)
+  cnf=directory/'mysql.cnf';cnf.touch(mode=0o600);cnf.write_text('[client]\nuser=root\npassword='+rootpw+'\n')
   inp=directory/'input.env';inp.write_text('MYSQL_PASSWORD='+runtime+'\nADMIN_PASSWORD='+admin+'\nWX_SECRET=\n');inp.chmod(0o600)
   out=directory/'draft'
   generated=run(['python3',ROOT/'scripts/cloudrun/account_draft.py','--input',inp,'--artifact',a.artifact,'--java',a.java,'--output',out])
@@ -23,7 +23,7 @@ def main():
   try:
    start=run(docker+['run','-d','--name',name,'--network','none','-v',str(pw)+':/run/rootpw:ro','-v',str(cnf)+':/run/client.cnf:ro','-e','MYSQL_ROOT_PASSWORD_FILE=/run/rootpw',pin])
    if start.returncode:raise RuntimeError('owned local MySQL fixture failed to start')
-   def sql(s):return run(docker+['exec','-i',name,'mysql','--defaults-extra-file=/run/client.cnf','-N','-B'],input=s)
+   def sql(s):return run(docker+['exec','--user','0:0','-i',name,'mysql','--defaults-extra-file=/run/client.cnf','-N','-B'],input=s)
    for _ in range(60):
     if sql('SELECT 1;').returncode==0:break
     time.sleep(.5)

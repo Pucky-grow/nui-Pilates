@@ -39,9 +39,13 @@
     <view class="admin-caption">{{item.bookable ? scheduleId == item.id ? '已选场次' : '可预约 · 点选此场次' : item.unbookableReason || '当前不可预约'}}</view>
   </view>
   <view wx:if="{{!list.length && !busy && !error}}" class="empty">
-    当天无排课，请选择其他日期
+    {{canArrange ? '当天还没有排课' : '当天无排课，请选择其他日期'}}
   </view>
-  <view class="card">
+  <view wx:if="{{canArrange}}" class="card arrange-card">
+    <button class="admin-action {{hasBookable ? 'secondary' : 'primary'}}" disabled="{{busy || !userId}}" bindtap="arrange">新建场次并代约</button>
+    <view class="admin-caption">{{userId ? '自选日期和开始时间，适用于团课和私教。' : '先选择会员，再安排上课时间。'}}</view>
+  </view>
+  <view wx:if="{{hasBookable || !canArrange}}" class="card">
     <input class="input" placeholder="{{bookingId ? '换场次原因（必填）' : '代预约原因（必填）'}}" data-key="reason" disabled="{{busy}}" bindinput="input" maxlength="255"/>
     <input wx:if="{{!bookingId && !ledgerBooking}}" class="input booking-remark" placeholder="预约备注（选填）" data-key="remark" disabled="{{busy}}" bindinput="input" maxlength="255"/>
     <view wx:if="{{bookingId}}" class="hint">换场次失败时会保留原预约。</view>

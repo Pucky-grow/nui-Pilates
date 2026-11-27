@@ -3,7 +3,15 @@
 import pathlib,re,subprocess,json,sys
 root=pathlib.Path(__file__).resolve().parents[2]
 files=subprocess.run(['git','ls-files','--cached','--others','--exclude-standard','-z'],cwd=root,capture_output=True,check=True).stdout.decode().split('\0')
-patterns={'private_key':r'-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----','aliyun_access_key':r'(?<![A-Za-z0-9])LTAI[A-Za-z0-9]{16,}(?![A-Za-z0-9])','github_token':r'gh[pousr]_[A-Za-z0-9]{30,}','aws_access_key':r'AKIA[A-Z0-9]{16}','jwt_literal':r'eyJ[A-Za-z0-9_-]{15,}\.[A-Za-z0-9_-]{15,}\.[A-Za-z0-9_-]{15,}'}
+patterns = {
+    'private_key': r'-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----',
+    'aliyun_access_key': r'(?<![A-Za-z0-9])LTAI[A-Za-z0-9]{16,}(?![A-Za-z0-9])',
+    'tencent_access_key_id': r'(?<![A-Za-z0-9])AKID[A-Za-z0-9]{32}(?![A-Za-z0-9])',
+    'tencent_secret_key': r'''(?i)\b(?:COS_SECRET_KEY|TENCENTCLOUD_SECRET_KEY)['"]?\s*[:=]\s*['"]?[A-Za-z0-9]{32,64}(?![\w-])''',
+    'github_token': r'gh[pousr]_[A-Za-z0-9]{30,}',
+    'aws_access_key': r'AKIA[A-Z0-9]{16}',
+    'jwt_literal': r'eyJ[A-Za-z0-9_-]{15,}\.[A-Za-z0-9_-]{15,}\.[A-Za-z0-9_-]{15,}',
+}
 findings=[]
 for name in sorted(set(files)):
  p=root/name
@@ -14,7 +22,7 @@ for name in sorted(set(files)):
   for rule,pattern in patterns.items():
    if re.search(pattern,line):
     # Java PEM format parser constants do not contain private key material.
-    if rule=='private_key' and ('replace(' in line or 'patterns=' in line):continue
+    if rule=='private_key' and ('replace(' in line or p == pathlib.Path(__file__).resolve()):continue
     findings.append({'path':name,'line':number,'rule':rule})
 print(json.dumps({'scanner':'source-pattern-precheck','files':len([x for x in files if x]),'status':'failed' if findings else 'passed','findings':findings,'scope':'recognized key/token patterns; full scanner result recorded separately'},indent=2))
 sys.exit(1 if findings else 0)

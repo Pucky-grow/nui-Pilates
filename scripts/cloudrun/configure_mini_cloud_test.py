@@ -50,7 +50,7 @@ def main():
     parser.add_argument('--evidence', type=Path)
     parser.add_argument('--transport', choices=['cloudrun', 'http'], default='cloudrun')
     args = parser.parse_args()
-    path = ROOT / 'frontend/miniprogram/config/environment.js'
+    path = ROOT / 'miniprogram/config/environment.js'
     source = candidate_source(path.read_text(), args.transport)
     if args.candidate_directory:
         args.candidate_directory.mkdir(parents=True, exist_ok=True)
@@ -60,7 +60,7 @@ def main():
             parser.error('--apply requires --evidence')
         validate_evidence(json.loads(args.evidence.read_text()), args.transport)
         configurations = [ROOT / x for x in ['project.config.json', 'project.private.config.json',
-                                             'frontend/miniprogram/project.config.json'] if (ROOT / x).exists()]
+                                             'miniprogram/project.config.json'] if (ROOT / x).exists()]
         updates = []
         for config in configurations:
             value = json.loads(config.read_text())

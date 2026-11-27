@@ -10,6 +10,7 @@ import com.yoyi.pilates.course.interfaces.dto.*;
 import com.yoyi.pilates.coach.application.*;
 import com.yoyi.pilates.coach.infrastructure.entity.*;
 import com.yoyi.pilates.coach.infrastructure.mapper.*;
+import com.yoyi.pilates.member.application.MemberService;
 import com.yoyi.pilates.product.infrastructure.mapper.*;
 import com.yoyi.pilates.trade.infrastructure.mapper.OrderMapper;
 import com.yoyi.pilates.system.security.*;
@@ -33,6 +34,7 @@ class SchedulingAndFreeFlowTest extends BookingFixture {
     @Autowired OrderMapper orders;
     @Autowired UserPackageMapper packages;
     @Autowired PackageCreditLogMapper credits;
+    @Autowired MemberService members;
     ScheduleCreateRequest request(int hour) {
         var r=new ScheduleCreateRequest();r.setCourseId(courseId);r.setCoachId(coachId);r.setClassroomId(roomId);r.setCourseDate(StudioTime.today().plusDays(1));r.setStartTime(LocalTime.of(hour,0));r.setEndTime(LocalTime.of(hour+1,0));r.setMaxCapacity(8);return r;
     }
@@ -62,6 +64,26 @@ class SchedulingAndFreeFlowTest extends BookingFixture {
     }
     @Test void parallelOverlappingCreationOnlyOneWins() throws Exception {
         assertEquals(1,parallel(List.of(()->scheduleService.create(request(12)),()->scheduleService.create(request(12)))));
+    }
+    @Test void newScheduleAndBookingCommitTogetherWhenRequestsOverlap() throws Exception {
+        members.ensureMember(userId);
+        assertEquals(1, parallel(List.of(
+                () -> scheduleService.createAndBook(request(12), userId, "核对预约"),
+                () -> scheduleService.createAndBook(request(12), userId, "核对预约"))));
+        assertEquals(2, schedules.selectCount(null));
+        var booking = bookingMapper.selectList(null).get(0);
+        assertEquals("BOOKED", booking.getStatus());
+        assertEquals(1, schedules.selectById(booking.getScheduleId()).getBookedCount());
+        assertEquals("7", redis.opsForValue().get(com.yoyi.pilates.common.constant.RedisKeys.stock(booking.getScheduleId())));
+    }
+    @Test void rejectedMemberAppointmentRollsBackNewSchedule() {
+        members.ensureMember(userId);
+        config.set("booking.max_per_day", "1");
+        bookings.book(userId, scheduleId, null, null);
+        var error = assertThrows(BusinessException.class, () -> scheduleService.createAndBook(request(13), userId, null));
+        assertTrue(error.getMessage().contains("预约"));
+        assertEquals(1, schedules.selectCount(null));
+        assertEquals(1, bookingMapper.selectCount(null));
     }
     @Test void differentCoachesCannotShareOverlappingRoom() throws Exception {
         CoachEntity other=new CoachEntity();other.setName("另一教练");other.setStatus("ACTIVE");other.setYears(1);coaches.insert(other);qualificationService.assign(courseId,other.getId(),1L);

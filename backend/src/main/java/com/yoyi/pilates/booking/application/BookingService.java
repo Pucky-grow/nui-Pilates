@@ -36,6 +36,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * 预约状态机：同会员跨排课限额锁 + 同排课互斥 + 数据库行锁/唯一约束。
@@ -75,25 +77,37 @@ public class BookingService {
      * @return bookingId
      */
     public Long book(Long userId, Long scheduleId, Long userPackageId, String remark) {
-        return bookWithCommand(userId, scheduleId, userPackageId, remark, java.util.function.Supplier::get);
+        return bookWithCommand(userId, scheduleId, userPackageId, remark, Supplier::get);
     }
 
     /** Allows a caller to record its idempotency result and terms within the same booking transaction. */
     public Long bookWithCommand(Long userId, Long scheduleId, Long userPackageId, String remark,
-            java.util.function.Function<java.util.function.Supplier<Long>, Long> command) {
-        return execution.run(scheduleId, userId, false, () -> command.apply(() -> {
-            requireActiveMember(userId);
-            CourseScheduleEntity schedule = lockSchedule(scheduleId);
-            bookingPolicy.requireBookable(schedule);
-            CourseEntity course = courseQueryService.requireCourse(schedule.getCourseId());
-            checkNotBookedYet(userId, scheduleId);
-            checkDailyLimit(userId, schedule);
-            requireNoOverlap(userId, schedule.getId(), schedule.getCourseDate(), schedule.getStartTime(), schedule.getEndTime());
-            Long bookingId = bookingTxService.bookInTx(userId, schedule, course, userPackageId, remark);
-            execution.changed(scheduleId);
-            publishBooking("BOOKING_CREATED", requireBooking(bookingId));
-            return bookingId;
-        }));
+            Function<Supplier<Long>, Long> command) {
+        return execution.run(scheduleId, userId, false, () -> command.apply(
+                () -> bookLocked(userId, scheduleId, userPackageId, remark, false)));
+    }
+
+    /** Create the unpublished schedule and occupy the first place under the same resource/member locks. */
+    public Long bookNewSchedule(Long userId, Supplier<Long> createSchedule, String remark,
+                                Function<Supplier<Long>, Long> command) {
+        return execution.run(null, userId, true, () -> command.apply(
+                () -> bookLocked(userId, createSchedule.get(), null, remark, true)));
+    }
+
+    private Long bookLocked(Long userId, Long scheduleId, Long userPackageId, String remark, boolean newStaffSchedule) {
+        MemberEntity member = requireActiveMember(userId);
+        if (newStaffSchedule && member == null) throw BusinessException.of(ResultCode.NOT_FOUND, "会员档案不存在");
+        CourseScheduleEntity schedule = lockSchedule(scheduleId);
+        if (newStaffSchedule) bookingPolicy.requireStaffBookable(schedule);
+        else bookingPolicy.requireBookable(schedule);
+        CourseEntity course = courseQueryService.requireCourse(schedule.getCourseId());
+        checkNotBookedYet(userId, scheduleId);
+        checkDailyLimit(userId, schedule);
+        requireNoOverlap(userId, schedule.getId(), schedule.getCourseDate(), schedule.getStartTime(), schedule.getEndTime());
+        Long bookingId = bookingTxService.bookInTx(userId, schedule, course, userPackageId, remark, newStaffSchedule);
+        execution.changed(scheduleId);
+        publishBooking("BOOKING_CREATED", requireBooking(bookingId));
+        return bookingId;
     }
 
     public void cancel(Long userId, Long bookingId) {
@@ -164,12 +178,13 @@ public class BookingService {
         return next;
     }
 
-    private void requireActiveMember(Long userId) {
+    private MemberEntity requireActiveMember(Long userId) {
         UserEntity user = userMapper.lockById(userId);
         if (user == null || "DISABLED".equals(user.getStatus())) throw BusinessException.of(ResultCode.UNAUTHORIZED);
         MemberEntity member = memberMapper.selectOne(new LambdaQueryWrapper<MemberEntity>().eq(MemberEntity::getUserId,userId));
         if ("BANNED".equals(user.getStatus()) || (member != null && "DISABLED".equals(member.getStatus())))
             throw BusinessException.of(ResultCode.BOOKING_LIMITED);
+        return member;
     }
 
     /** 整节取消与全部 BOOKED 退约、返还处于同一事务，不依赖 MQ。 */
@@ -305,21 +320,16 @@ public class BookingService {
     public int[] finishSchedule(Long scheduleId) {
         return execution.run(scheduleId, null, false, () -> {
         CourseScheduleEntity locked = lockSchedule(scheduleId);
-        if (!"SCHEDULED".equals(locked.getStatus()) || com.yoyi.pilates.common.util.StudioTime.now().isBefore(
+        LocalDateTime finishedAt = com.yoyi.pilates.common.util.StudioTime.now();
+        if (!"SCHEDULED".equals(locked.getStatus()) || finishedAt.isBefore(
                 LocalDateTime.of(locked.getCourseDate(), locked.getEndTime()))) return new int[]{0, 0};
         List<BookingEntity> signedIns = bookingMapper.selectList(new LambdaQueryWrapper<BookingEntity>()
-                .eq(BookingEntity::getScheduleId, scheduleId).eq(BookingEntity::getStatus, "SIGNED_IN"));
+                .eq(BookingEntity::getScheduleId, scheduleId).eq(BookingEntity::getStatus, "SIGNED_IN")
+                .orderByAsc(BookingEntity::getUserId));
         for (BookingEntity b : signedIns) {
             b.setStatus("COMPLETED");
             if (bookingMapper.updateById(b) != 1) throw BusinessException.of(ResultCode.CONFLICT);
-            // 会员累计上课次数 + 最后训练时间
-            MemberEntity member = memberMapper.selectOne(
-                    new LambdaQueryWrapper<MemberEntity>().eq(MemberEntity::getUserId, b.getUserId()));
-            if (member != null) {
-                member.setTotalSessions(member.getTotalSessions() + 1);
-                member.setLastTrainingAt(com.yoyi.pilates.common.util.StudioTime.now());
-                memberMapper.updateById(member);
-            }
+            memberMapper.recordCompletedSession(b.getUserId(), finishedAt);
         }
         List<BookingEntity> noShows = bookingMapper.selectList(new LambdaQueryWrapper<BookingEntity>()
                 .eq(BookingEntity::getScheduleId, scheduleId).eq(BookingEntity::getStatus, "BOOKED"));

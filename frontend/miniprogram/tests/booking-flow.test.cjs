@@ -4,10 +4,11 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 const util = require('../utils/util');
+const scheduleForm = require('../utils/schedule-form');
 function page(file, api, http={login:()=>Promise.resolve()}, wxOverrides={}) {
   let definition; const navigations=[];
   const wx={showToast(){},redirectTo:x=>navigations.push(x.url),navigateTo:x=>navigations.push(x.url),navigateBack(){},...wxOverrides};
-  vm.runInNewContext(fs.readFileSync(path.join(__dirname,'..',file),'utf8'),{Page:p=>definition=p,require:name=>name.includes('services/api')||name==='../api'?api:name.includes('request')?http:util,wx,console,Date,Promise,setTimeout});
+  vm.runInNewContext(fs.readFileSync(path.join(__dirname,'..',file),'utf8'),{Page:p=>definition=p,require:name=>name.includes('services/api')||name==='../api'?api:name.includes('request')?http:name.endsWith('/schedule-form')?scheduleForm:util,wx,console,Date,Promise,setTimeout});
   const instance={data:JSON.parse(JSON.stringify(definition.data)),setData(update){Object.assign(this.data,update);}};
   for(const [key,value] of Object.entries(definition))if(typeof value==='function')instance[key]=value.bind(instance);
   return {instance,navigations};
@@ -38,6 +39,55 @@ test('course detail and coach timetable reload when returning',async()=>{
   let count=0;const api={courseDetail:async()=>({id:1}),courseSchedules:async()=>{count++;return [];},bookingRules:async()=>({bookingMode:'FREE'}),courseReviews:async()=>({list:[]}),get:async()=>{count++;return [];}};
   const {instance:p}=page('pages/course-detail/course-detail.js',api);p.onLoad({id:1});await p.onShow();await p.onShow();assert.equal(count,2);
   const {instance:c}=page('coach-end/schedule/schedule.js',api);c.onLoad();await c.onShow();await c.onShow();assert.equal(count,4);
+});
+test('coach selects either course type and arbitrary start minute, then books for a confirmed member', async () => {
+  const requests = [];
+  const approved = { status: 'APPROVED', courseStatus: 'ON_SHELF' };
+  const courses = [
+    { ...approved, courseId: 11, courseName: '器械小班', courseType: 'GROUP', durationMinutes: 50 },
+    { ...approved, courseId: 12, courseName: '一对一', courseType: 'PRIVATE', durationMinutes: 45 },
+    { ...approved, courseId: 13, courseName: '已下架', courseStatus: 'OFF_SHELF' }
+  ];
+  const api = {
+    get: async url => url.endsWith('/my') ? courses : [{ id: 5, name: '练习室', capacity: 4 }],
+    post: async (url, body) => {
+      requests.push({ url, body });
+      if (url.endsWith('/booking-member')) return { userId: 51, nickname: '测试会员' };
+      if (url.endsWith('/book')) return { bookingId: 21, scheduleId: 17 };
+      return 19;
+    }
+  };
+  const date = util.localDate(3);
+  const wx = { setNavigationBarTitle() {}, showModal: options => options.success({ confirm: true }) };
+  const group = page('coach-end/schedule-create/schedule-create.js', api, undefined, wx).instance;
+  await group.onLoad({ date });
+  assert.equal(group.data.courseChoices.length, 3);
+  assert.equal(group.data.courseChoices[1], '器械小班 · 团课');
+  group.onCourse({ detail: { value: 1 } });
+  group.onRoom({ detail: { value: 1 } });
+  group.onStart({ detail: { value: '14:37' } });
+  await group.submit();
+  assert.equal(requests[0].url, '/api/coach-end/schedules');
+  assert.equal(requests[0].body.endTime, '15:27');
+  assert.equal(requests[0].body.maxCapacity, 4);
+
+  const { instance: privateClass, navigations } = page('coach-end/schedule-create/schedule-create.js', api, undefined, wx);
+  await privateClass.onLoad({ date, mode: 'booking' });
+  privateClass.onCourse({ detail: { value: 2 } });
+  privateClass.onRoom({ detail: { value: 1 } });
+  privateClass.onStart({ detail: { value: '18:17' } });
+  privateClass.onReason({ detail: { value: '已确认' } });
+  await privateClass.submit();
+  assert.equal(requests.length, 1);
+  privateClass.onMember({ detail: { value: 'MB12345' } });
+  await privateClass.lookupMember();
+  await privateClass.submit();
+  assert.equal(requests[1].url, '/api/coach-end/schedules/booking-member');
+  assert.equal(requests[2].url, '/api/coach-end/schedules/book');
+  assert.equal(requests[2].body.userId, 51);
+  assert.equal(requests[2].body.schedule.maxCapacity, 1);
+  assert.equal(requests[2].body.schedule.endTime, '19:02');
+  assert.equal(navigations[0], '/coach-end/students/students?scheduleId=17');
 });
 test('course failures are distinct from empty results and date selection follows configured window',async()=>{
   const api={bookingRules:async()=>({bookingMode:'FREE',advanceDays:3}),schedules:async()=>{throw {message:'服务不可用'};}};
@@ -80,7 +130,7 @@ test('member attendance uses camera-only lookup and sends the booking ID with an
   await Promise.resolve();assert.deepEqual(calls,[['12',code]]);assert.equal(p.data.checked,true);
 });
 test('affected WXML event bindings resolve to actual Page methods',()=>{
-  for(const file of ['pages/course/course','pages/course-detail/course-detail','pages/booking-confirm/booking-confirm','pages/private-booking/private-booking','pages/checkin/checkin','coach-end/schedule/schedule']){
+  for(const file of ['pages/course/course','pages/course-detail/course-detail','pages/booking-confirm/booking-confirm','pages/private-booking/private-booking','pages/checkin/checkin','coach-end/schedule/schedule','coach-end/schedule-create/schedule-create']){
     const {instance}=page(file+'.js',{});const wxml=fs.readFileSync(path.join(__dirname,'..',file+'.wxml'),'utf8');
     for(const match of wxml.matchAll(/(?:bind|catch)(?::)?(?:tap|change|input|submit)="([A-Za-z][A-Za-z0-9_]*)"/g))assert.equal(typeof instance[match[1]],'function',file+': '+match[1]);
   }

@@ -23,6 +23,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.time.*;
 import java.util.*;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 /** 所有排课入口共享校验；资源锁防并发重叠，排课锁与预约/签到共用。 */
 @Service
@@ -44,6 +46,18 @@ public class ScheduleService {
         authorize("create"); forceCoach(request);
         return execution.run(null,null,true,()->insert(request));
     }
+
+    public Long createAndBook(ScheduleCreateRequest request, Long userId, String remark) {
+        return createAndBook(request, userId, remark, Supplier::get);
+    }
+
+    public Long createAndBook(ScheduleCreateRequest request, Long userId, String remark,
+                              Function<Supplier<Long>, Long> command) {
+        authorize("create");
+        forceCoach(request);
+        return bookingService.bookNewSchedule(userId, () -> insert(request), remark, command);
+    }
+
     private Long insert(ScheduleCreateRequest request) {
         validate(request,null);
         return insertSchedule(request, 0);

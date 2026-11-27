@@ -23,9 +23,9 @@
 import { ref, onMounted } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import http from '../utils/request';
+import { adminRoles } from '../utils/adminSession';
 
-const roles=JSON.parse(localStorage.getItem('adminRoles')||'[]');
-const permissions=JSON.parse(localStorage.getItem('adminPerms')||'[]');
+const roles = adminRoles();
 const canReadAmounts=roles.includes('ADMIN')||roles.includes('STORE_MANAGER');
 const canRefund=false; // Online refunds are closed for this FREE release; historical queries remain.
 const list = ref([]); const total = ref(0); const page = ref(1);

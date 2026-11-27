@@ -1,5 +1,7 @@
 package com.yoyi.pilates.booking.interfaces;
 
+import com.yoyi.pilates.booking.interfaces.dto.ScheduledBookingRequest;
+import com.yoyi.pilates.course.application.ScheduleService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.yoyi.pilates.booking.application.*;
@@ -25,6 +27,7 @@ import java.util.*;
 @RequiredArgsConstructor
 public class AdminBookingController {
     private final BookingService service;
+    private final ScheduleService scheduling;
     private final com.yoyi.pilates.ledger.StudioLedgerAccess studioLedger;
     private final BookingQueryService queries;
     private final BookingMapper bookings;
@@ -80,6 +83,14 @@ public class AdminBookingController {
     @OpLog(module="booking",action="admin_create",detail="#request.userId + ':' + #request.scheduleId + ' reason=' + #request.reason")
     public Result<Long> create(@Valid @RequestBody Create request){
         requireAdministrator();return Result.ok(service.book(request.userId(),request.scheduleId(),null,request.remark()));
+    }
+    @PostMapping("/new-schedule") @RequiresPerm("booking:manage")
+    @OpLog(module = "booking", action = "admin_schedule_and_book",
+            detail = "#request.userId + ' ' + #request.schedule.courseDate + ' ' + #request.schedule.startTime + ' reason=' + #request.reason")
+    public Result<Long> createWithSchedule(@Valid @RequestBody ScheduledBookingRequest request) {
+        requireAdministrator();
+        if (request.userId() == null) throw BusinessException.of(ResultCode.BAD_REQUEST, "请选择会员");
+        return Result.ok(scheduling.createAndBook(request.schedule(), request.userId(), request.remark()));
     }
     @PostMapping("/{id}/cancel") @RequiresPerm("booking:manage")
     @OpLog(module="booking",action="admin_cancel",targetId="#id",detail="#request.reason")

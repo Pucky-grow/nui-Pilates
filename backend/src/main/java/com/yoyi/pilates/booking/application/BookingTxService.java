@@ -48,6 +48,16 @@ public class BookingTxService {
     @Transactional(rollbackFor = Exception.class)
     public Long bookInTx(Long userId, CourseScheduleEntity schedule, CourseEntity course,
                          Long userPackageId, String remark) {
+        return bookInTx(userId, schedule, course, userPackageId, remark, false);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public Long bookInTx(Long userId, CourseScheduleEntity schedule, CourseEntity course,
+                         Long userPackageId, String remark, boolean freeOnly) {
+        boolean free = freeMode();
+        if (freeOnly && !free) {
+            throw BusinessException.of(ResultCode.CONFLICT, "新建场次并代约仅支持免费预约模式");
+        }
         // 1. 排课占座(DB 条件更新, 防超卖最后防线)
         if (scheduleMapper.incrBooked(schedule.getId()) == 0) {
             throw BusinessException.of(ResultCode.SCHEDULE_FULL);
@@ -57,7 +67,7 @@ public class BookingTxService {
         booking.setBookingNo(NoGenerator.bookingNo());
         booking.setUserId(userId);
         booking.setScheduleId(schedule.getId());
-        if (freeMode()) {
+        if (free) {
             booking.setUserPackageId(null);
             booking.setCreditsUsed(0);
         } else {

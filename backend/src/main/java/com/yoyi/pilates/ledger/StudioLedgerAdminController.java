@@ -1,6 +1,8 @@
 package com.yoyi.pilates.ledger;
 
+import com.yoyi.pilates.booking.interfaces.dto.ScheduledBookingRequest;
 import com.yoyi.pilates.common.result.Result;
+import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -188,6 +190,12 @@ class StudioLedgerAdminController {
     Result<Long> book(@PathVariable long id, @RequestHeader("X-Studio-Command") String key,
             @RequestBody StudioBookingFees.BookingInput input) {
         return Result.ok(fees.book(id, access.admin(), key, input));
+    }
+
+    @PostMapping("/members/{id}/scheduled-bookings")
+    Result<Long> bookWithSchedule(@PathVariable long id, @RequestHeader("X-Studio-Command") String key,
+                                 @Valid @RequestBody ScheduledBookingRequest input) {
+        return Result.ok(fees.bookWithSchedule(id, access.admin(), key, input));
     }
 
     @GetMapping("/members/{id}/invites")

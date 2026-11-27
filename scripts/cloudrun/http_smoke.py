@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Scoped HTTPS smoke against uni-test. Credentials/tokens/signed URLs never enter reports.
+"""Scoped HTTPS smoke against an explicitly configured test origin.
 
 Login updates only the dedicated test admin's login/session state. Optional file checks
 retain two tiny synthetic objects/metadata for review; no member, booking or order writes.
@@ -17,10 +17,6 @@ import urllib.error
 import urllib.parse
 import urllib.request
 import zlib
-
-ROOT = Path(__file__).resolve().parents[2]
-ORIGIN = 'https://uni-test-339305-11-1505023965.sh.run.tcloudbase.com'
-
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
     def redirect_request(self, req, fp, code, msg, headers, newurl):
@@ -42,12 +38,23 @@ def protected_properties(path):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--config', required=True, type=Path, help='0600 properties with origin, admin.username and admin.password')
     parser.add_argument('--report', required=True, type=Path)
     parser.add_argument('--allow-synthetic-uploads', action='store_true')
     args = parser.parse_args()
+    config = protected_properties(args.config)
+    configured = config.get('origin', '')
+    target = urllib.parse.urlsplit(configured)
+    if (target.scheme != 'https' or not target.hostname or target.username is not None
+            or target.path not in ('', '/') or target.query or target.fragment
+            or any(ord(char) <= 32 for char in configured)):
+        parser.error('config origin must be a bare HTTPS origin')
+    if not all(config.get(key) for key in ('admin.username', 'admin.password')):
+        parser.error('config must contain the dedicated test admin credentials')
+    origin = 'https://' + target.netloc
     args.report.parent.mkdir(parents=True, exist_ok=True)
     fd = os.open(args.report, os.O_CREAT | os.O_EXCL | os.O_WRONLY | os.O_NOFOLLOW, 0o600)
-    report = {'type': 'real-cloud-application-https-smoke', 'origin': ORIGIN,
+    report = {'type': 'real-cloud-application-https-smoke', 'origin': origin,
               'checkedAtUtc': datetime.datetime.now(datetime.timezone.utc).isoformat(),
               'status': 'running', 'checks': [], 'syntheticObjects': [],
               'credentialsOrTokensEmitted': False, 'memberBookingOrderWrites': False,
@@ -66,7 +73,7 @@ def main():
             headers['Content-Type'] = content_type
             if not isinstance(body, bytes):
                 body = json.dumps(body).encode()
-        req = urllib.request.Request(ORIGIN + path, data=body, headers=headers, method=method)
+        req = urllib.request.Request(origin + path, data=body, headers=headers, method=method)
         try:
             with opener.open(req, timeout=25) as response:
                 return response.status, response.headers, response.read(6 * 1024 * 1024)
@@ -84,7 +91,7 @@ def main():
 
     def media_path(url):
         value = urllib.parse.urlsplit(url)
-        if value.scheme + '://' + value.netloc != ORIGIN or not value.path.startswith('/media/'):
+        if value.scheme + '://' + value.netloc != origin or not value.path.startswith('/media/'):
             raise ValueError('unexpected media origin/path')
         return value.path + ('?' + value.query if value.query else '')
 
@@ -106,7 +113,6 @@ def main():
             raise ValueError('test launch capability boundary mismatch')
         passed('FREE booking and unconfigured paid/phone/notification features disabled')
         stage = 'admin-login'
-        config = protected_properties(ROOT / '.secrets/cloud-acceptance/bootstrap.properties')
         login = api('/api/auth/admin-login', {'username': config['admin.username'], 'password': config['admin.password']})
         if login.get('code') != 0:
             report['failureBusinessCode'] = login.get('code')

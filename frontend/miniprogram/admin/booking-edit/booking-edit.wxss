@@ -5,3 +5,4 @@
 .schedule-choice .admin-caption { margin-top: 10rpx; }
 .submit-booking, .booking-remark { margin-top: 16rpx; }
 .submit-booking { width: 100%; }
+.arrange-card .admin-caption { margin-top: 12rpx; }

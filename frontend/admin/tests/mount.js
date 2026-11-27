@@ -29,7 +29,7 @@ try {
  }
 
  // Exercise mounted Element Plus form state and actions; mocked HTTP stays separate from backend integration tests.
- localStorage.setItem('adminRoles', JSON.stringify(['ADMIN']));
+ sessionStorage.setItem('adminRoles', JSON.stringify(['ADMIN']));
  const optionData={courses:[{id:11,name:'器械基础'}],coaches:[{id:21,name:'王教练'},{id:22,name:'李教练'}],classrooms:[{id:31,name:'一号教室',capacity:12}],qualifications:[{courseId:11,coachId:21,status:'APPROVED'}]};
  let rows=[];let relations=[{courseId:11,coachId:21,status:'APPROVED'},{courseId:11,coachId:22,status:'DISABLED'}];
  http.defaults.adapter=async config=>{

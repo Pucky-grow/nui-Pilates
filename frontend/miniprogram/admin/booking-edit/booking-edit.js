@@ -1,17 +1,22 @@
 const u = require("../common");
 const display = require("../../utils/studio-ledger");
-Page({ data: { userId: "", bookingId: "", scheduleId: "", keyword: "", members: [], memberName: "", list: [], date: u.date(), reason: "", remark: "", busy: false, error: "", canManage: false, fixedMember: false, ledgerBooking: false }, onLoad(q) {
+Page({ data: { userId: "", bookingId: "", scheduleId: "", keyword: "", members: [], memberName: "", list: [], hasBookable: false, date: u.date(), reason: "", remark: "", busy: false, error: "", canManage: false, canArrange: false, fixedMember: false, ledgerBooking: false }, onLoad(q) {
   this.ledgerMemberId = q.ledgerMemberId;
   this.sendLedger = display.commands(u.api);
   this.initialSchedule = q.scheduleId || "";
   this.initialBooking = q.bookingId || "";
   this.setData({ userId: q.userId || "", bookingId: q.bookingId || "", scheduleId: q.scheduleId || "",
-    canManage: u.isAdmin(), fixedMember: Boolean(q.bookingId || q.ledgerMemberId), ledgerBooking: Boolean(q.ledgerMemberId) });
+    canManage: u.isAdmin(), canArrange: !q.bookingId && u.isAdmin() && u.can("schedule:create"),
+    fixedMember: Boolean(q.bookingId || q.ledgerMemberId), ledgerBooking: Boolean(q.ledgerMemberId) });
   if (!u.guard("booking:manage")) return;
   if (!u.isAdmin()) {
     this.setData({ error: "只有管理员可以代预约或为会员换场次。" });
     return;
   }
+  return this.load();
+}, onShow() {
+  if (!this.reloadAfterArrange) return;
+  this.reloadAfterArrange = false;
   return this.load();
 }, onPullDownRefresh() {
   this.load();
@@ -28,7 +33,7 @@ Page({ data: { userId: "", bookingId: "", scheduleId: "", keyword: "", members: 
       this.initialBooking = "";
     }
     const list = await u.api.get("/api/course-schedules", { date: this.data.date, days: 1 });
-    const patch = { list };
+    const patch = { list, hasBookable: list.some(row => row.bookable) };
     if (this.ledgerMemberId) {
       const { member } = await u.api.get("/api/admin/studio-ledger/members/" + this.ledgerMemberId);
       patch.userId = member.user_id;
@@ -52,11 +57,17 @@ Page({ data: { userId: "", bookingId: "", scheduleId: "", keyword: "", members: 
   const x = this.data.members.find((m) => String(m.member.userId) === String(e.currentTarget.dataset.id));
   if (x) this.setData({ userId: x.member.userId, memberName: x.nickname || x.member.memberNo, members: [] });
 }, date(e) {
-  this.setData({ date: e.detail.value, scheduleId: "" });
+  this.setData({ date: e.detail.value, scheduleId: "", list: [], hasBookable: false });
   this.load();
 }, pick(e) {
   const selected = this.data.list.find(row => String(row.id) === String(e.currentTarget.dataset.id));
   if (selected?.bookable && !this.data.busy) this.setData({ scheduleId: selected.id });
+}, arrange() {
+  if (!this.data.canArrange || !this.data.userId || this.data.busy) return;
+  const query = "?date=" + this.data.date + "&bookUserId=" + this.data.userId
+    + (this.ledgerMemberId ? "&ledgerMemberId=" + this.ledgerMemberId : "");
+  this.reloadAfterArrange = true;
+  wx.navigateTo({ url: "/admin/schedule-edit/schedule-edit" + query, fail: () => { this.reloadAfterArrange = false; } });
 }, submit() {
   if (!u.isAdmin()) return;
   return u.run(this, async () => {

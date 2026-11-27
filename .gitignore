@@ -43,3 +43,4 @@ build-artifacts/
 /docs/*-verification.json
 .secrets/
 project.private.config.json
+.attach_pid*

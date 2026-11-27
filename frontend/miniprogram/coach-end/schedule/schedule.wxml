@@ -1,6 +1,7 @@
 <view class="page">
   <view class="head">
-    <button class="btn-primary" bindtap="goCreate">+ 创建排课</button>
+    <button class="btn-primary" data-mode="booking" bindtap="goCreate">排课并代约</button>
+    <button class="btn-plain" bindtap="goCreate">只创建排课</button>
   </view>
   <scroll-view scroll-x class="filter-bar">
     <view class="fb-item {{rangeIndex==index?'on':''}}" wx:for="{{ranges}}" wx:key="key" bindtap="onRange" data-i="{{index}}">{{item.label}}</view>

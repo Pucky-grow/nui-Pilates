@@ -48,6 +48,28 @@ class StudioLedgerHttpTest extends BookingFixture {
     }
 
     @Test
+    void offlineMemberCanBookNewScheduleOnceAndKeepTheLedgerAudit() throws Exception {
+        Actor admin = actor("ADMIN");
+        var member = create(admin, "SHARED");
+        String memberPath = ROOT + "/members/" + member.path("id").asLong();
+        String bookingPath = memberPath + "/scheduled-bookings";
+        var schedule = Map.of("courseId", courseId, "coachId", coachId, "classroomId", roomId,
+                "courseDate", StudioTime.today().plusDays(2).toString(),
+                "startTime", "16:43", "endTime", "17:43", "maxCapacity", 4);
+        var request = Map.of("schedule", schedule, "reason", "会员已确认日期");
+        String key = UUID.randomUUID().toString();
+        long id = ok("POST", bookingPath, admin.token(), request, key).asLong();
+        assertEquals(id, ok("POST", bookingPath, admin.token(), request, key).asLong());
+        assertEquals(member.path("user_id").asLong(), bookingMapper.selectById(id).getUserId());
+        assertEquals(2, schedules.selectCount(null));
+        assertEquals(1, bookingMapper.selectCount(null));
+        assertEquals(1, jdbc.queryForObject(
+                "SELECT COUNT(*) FROM studio_admin_audit WHERE action='OFFLINE_SCHEDULE_BOOK' AND target_id=?", Integer.class, id));
+        assertEquals(0, jdbc.queryForObject("SELECT COUNT(*) FROM studio_booking_terms WHERE booking_id=?", Integer.class, id));
+        assertEquals(0, balance(admin, memberPath));
+    }
+
+    @Test
     void splitWalletHistoryIdempotencyAndClaim() throws Exception {
         Actor admin = actor("ADMIN");
         var member = create(admin, "SPLIT");

@@ -10,16 +10,9 @@ test_images=dict(manifest['images'])
 web_fixture=None
 if a.web_fixture_release:
  fixture=json.loads((a.web_fixture_release/'manifest.json').read_text())
- web_build_files = {
-  'frontend/admin/package.json', 'frontend/admin/package-lock.json', 'frontend/admin/nginx.conf',
-  'deploy/Dockerfile.admin.artifact', 'deploy/Dockerfile.edge', 'deploy/nginx.conf',
- }
  for name,expected in fixture['sourceHashes'].items():
-  source_name = 'frontend/' + name if name.startswith('admin/') else name
-  if source_name.startswith('frontend/admin/src/') or source_name in web_build_files:
-   source = ROOT / source_name
-   if not source.is_file() or hashlib.sha256(source.read_bytes()).hexdigest() != expected:
-    raise SystemExit('STOP: web fixture sources changed; rebuild fixtures first')
+  if name.startswith('admin/src/') or name in {'admin/package.json','admin/package-lock.json','admin/nginx.conf','deploy/Dockerfile.admin.artifact','deploy/Dockerfile.edge','deploy/nginx.conf'}:
+   if not (ROOT/name).is_file() or hashlib.sha256((ROOT/name).read_bytes()).hexdigest()!=expected:raise SystemExit('STOP: web fixture sources changed; rebuild fixtures first')
  for component in ['admin','edge']:test_images[component]=fixture['images'][component]
  web_fixture={'release':fixture['version'],'components':['admin','edge'],'purpose':'Unchanged local proxy/static fixtures only; not part of new server image build'}
 report={'status':'running','scope':'local Linux containers; not Aliyun/WeChat or actual cloud MySQL/COS','project':project,'cases':[],'releaseImages':test_images,'webFixture':web_fixture,'browserAcceptance':'skipped-by-scope' if a.skip_browser else 'pending'}

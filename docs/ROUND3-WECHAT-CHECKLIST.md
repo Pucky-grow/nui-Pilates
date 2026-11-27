@@ -1,12 +1,12 @@
 # Round3 微信开发者工具与真机人工验收
 
-这份清单保留 Round3 的预约与签到用例。使用当前制品复验时，将开发者工具和真机结果分别记录。
+**当前状态：开发者工具业务验收待验证；真机业务验收待验证。** 已安装工具和运行 Node Page/请求逻辑测试，均不能替代这些状态。现有 project.config.json 中的 AppID 没有被确认是测试应用，本轮没有使用它连接会员数据，也没有上传、预览发布或发送真实通知。
 
 ## 准备及记录要求
 
 1. 负责人提供已确认隔离的测试 AppID、测试账号/体验者、可登录的开发者工具及至少一台真机。微信 AppSecret 仅由服务端安全注入，绝不写入小程序或记录表。
 2. 使用单独的项目副本、测试 MySQL/Redis/后端和无真实会员的专用账号。先核对域名、环境标识、数据库和 Redis 归属，再导入；不得直接把本地 URL 改成业务域名做测试。
-3. 在 `frontend/miniprogram/config/environment.js` 核对 develop 和 trial 的隔离云托管配置。测试本机 HTTP 时按[本机联调手册](LOCAL-DEVELOPMENT.md)设置 develop。真机使用可达的隔离服务和真实微信登录。
+3. `miniprogram/config/environment.js`：develop 默认仅访问本机测试地址、允许开发 Mock；trial/release 强制真实微信登录和 HTTPS，未填地址时明确拒绝请求。真机的 127.0.0.1 指手机自身，不能当作开发电脑；填入可达的隔离 HTTPS 地址。
 4. 开发工具和真机分别核对合法 request/upload 域名、证书链、TLS、域名备案/平台配置、网络可达性；保留 urlCheck=true。生产式链路不能通过“关闭合法域名检查”记为通过。
 5. 真实微信登录验收：后端采用非开发配置，`WX_MOCK_LOGIN=false`，配置测试应用的真实 AppID/Secret；测试环境 profile 不允许 Mock，缺少配置会拒绝登录。使用临时开发 Mock 做页面调试时，另记“开发 Mock”，不计入真实微信链路。
 6. 准备无课包会员、ADMIN、STORE_MANAGER、STAFF、COACH 测试账号；两节 FREE 团课及私教课、两个有明确单课资格的教练、符合容量的教室。通过已验证接口准备测试数据；不向全部课程自动授资格。

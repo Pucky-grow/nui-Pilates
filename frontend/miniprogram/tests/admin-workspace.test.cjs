@@ -13,7 +13,7 @@ function pageHarness(file,responses={}) {
  const wx={getStorageSync:k=>storage.get(k),setStorageSync:(k,v)=>storage.set(k,v),showToast(){},stopPullDownRefresh(){},reLaunch:o=>nav.push(o.url),navigateTo:o=>nav.push(o.url),redirectTo:o=>{nav.push(o.url);o.success?.();},showModal:o=>o.success({confirm:modal,content:'隔离测试原因'})};
  const api={};for(const verb of ['get','post','put','del'])api[verb]=async(url,body)=>{calls.push({verb,url,body});const response=responses[url];if(response instanceof Error)throw response;return typeof response==='function'?response(body,verb):response===undefined?{}:response;};
  const u=moduleAt('admin/common.js',{wx,require:()=>api});
- const modules = { '../common': u, '../api': api, '../../utils/studio-ledger': require('../utils/studio-ledger'), '../../utils/util': require('../utils/util') };
+ const modules = { '../common': u, '../api': api, '../../utils/studio-ledger': require('../utils/studio-ledger'), '../../utils/util': require('../utils/util'), '../../utils/schedule-form': require('../utils/schedule-form') };
  if (file === 'admin/studio-ledger/studio-ledger.js') {
   modules['./forms'] = require('../admin/studio-ledger/forms');
  }
@@ -410,6 +410,75 @@ test('full or absent target booking is rejected in UI without POST',async()=>{co
 test('cancelled booking confirmation produces no mutation',async()=>{const h=pageHarness('admin/booking-edit/booking-edit.js');h.setModal(false);h.page.setData({userId:1,scheduleId:2,reason:'测试',list:[{id:2,bookable:true}]});await h.page.submit();assert.equal(h.calls.filter(c=>c.verb==='post').length,0);});
 test('booking move uses explicit admin endpoint and redirects to new ID',async()=>{const h=pageHarness('admin/booking-edit/booking-edit.js',{'/api/admin/bookings/9/move':10});h.page.setData({userId:1,bookingId:9,scheduleId:2,reason:'测试',list:[{id:2,bookable:true}]});await h.page.submit();assert.equal(h.calls[0].url,'/api/admin/bookings/9/move');assert.equal(h.calls[0].body.scheduleId,2);assert.ok(h.nav[0].endsWith('id=10'));});
 
+test('administrator can arrange a new slot for the selected member on a day without classes', async () => {
+ const h = pageHarness('admin/booking-edit/booking-edit.js', {
+  '/api/course-schedules': [], '/admin/members/51': { user: { nickname: '测试会员' }, member: { memberNo: 'MB51' } }
+ });
+ await h.page.onLoad({ userId: '51' });
+ h.page.setData({ date: '2026-12-04' });
+ assert.equal(h.page.data.list.length, 0);
+ assert.equal(typeof h.page.arrange, 'function');
+ h.page.arrange();
+ assert.match(h.nav[0], /^\/admin\/schedule-edit\/schedule-edit\?/);
+ assert.match(h.nav[0], /(?:\?|&)date=2026-12-04(?:&|$)/);
+ assert.match(h.nav[0], /(?:\?|&)bookUserId=51(?:&|$)/);
+});
+
+test('a schedule form with one listed course offers course creation and editing', async () => {
+ const responses = {
+  '/admin/schedules/options': { courses: [{ id: 1, name: '1v2 精品小团课', type: 'GROUP', durationMinutes: 50 }], coaches: [], classrooms: [], qualifications: [] }
+ };
+ const h = pageHarness('admin/schedule-edit/schedule-edit.js', responses);
+ let saved;
+ h.wx.navigateTo = options => { h.nav.push(options.url); saved = options.events.courseSaved; };
+ await h.page.load();
+ h.page.change({ detail: { key: 'courseId', value: 1 } });
+ h.page.change({ detail: { key: 'startTime', value: '17:23' } });
+ assert.equal(typeof h.page.newCourse, 'function');
+ h.page.newCourse();
+ h.page.editCourse();
+ assert.equal(h.nav[0], '/admin/course-edit/course-edit?fromSchedule=1');
+ assert.equal(h.nav[1], '/admin/course-edit/course-edit?fromSchedule=1&id=1');
+ responses['/admin/schedules/options'].courses.push({ id: 2, name: '调整体态', type: 'PRIVATE', durationMinutes: 45 });
+ saved({ id: 2 });
+ await h.page.onShow();
+ assert.equal(h.page.data.form.courseId, 2);
+ assert.equal(h.page.data.form.maxCapacity, 1);
+ assert.equal(h.page.data.form.startTime, '17:23');
+ assert.equal(h.page.data.courseFields[0].options[2].label, '调整体态 · 私教');
+ assert.match(h.page.data.fields.find(field => field.key === 'startTime').hint, /18:08/);
+});
+
+test('new schedule booking submits the selected member and derived end time to the proper endpoint', async () => {
+ const date = require('../utils/util').localDate(2);
+ const options = {
+  courses: [{ id: 2, name: '私教', type: 'PRIVATE', durationMinutes: 45 }], coaches: [{ id: 3, name: '测试教练' }],
+  classrooms: [{ id: 4, name: '测试教室', capacity: 2 }], qualifications: [{ coachId: 3, courseId: 2 }]
+ };
+ for (const ledgerMemberId of ['', '9']) {
+  const endpoint = ledgerMemberId ? memberLedgerPath + '/scheduled-bookings' : '/api/admin/bookings/new-schedule';
+  const h = pageHarness('admin/schedule-edit/schedule-edit.js', {
+   '/admin/schedules/options': options, [endpoint]: 81,
+   '/admin/members/51': { user: { nickname: '测试会员' }, member: {} },
+   [memberLedgerPath]: { member: { user_id: 51, nickname: '测试会员' } }
+  });
+  await h.page.onLoad({ date, bookUserId: '51', ledgerMemberId });
+  for (const [key, value] of Object.entries({ courseId: 2, coachId: 3, classroomId: 4, startTime: '18:17' })) {
+   h.page.change({ detail: { key, value } });
+  }
+  h.page.setData({ reason: '与会员确认上课时间' });
+  await h.page.save();
+  const post = h.calls.find(call => call.verb === 'post');
+  assert.equal(post.url, endpoint);
+  assert.equal(post.body.schedule.courseDate, date);
+  assert.equal(post.body.schedule.startTime, '18:17');
+  assert.equal(post.body.schedule.endTime, '19:02');
+  assert.equal(post.body.schedule.maxCapacity, 1);
+  assert.equal(post.body.userId, ledgerMemberId ? undefined : 51);
+  assert.equal(h.nav[0], '/admin/booking-detail/booking-detail?id=81');
+ }
+});
+
 test('ledger booking shows the account holder and cannot be switched to a different member', async () => {
  const h = pageHarness('admin/booking-edit/booking-edit.js', {
   [memberLedgerPath]: { member: { id: 9, user_id: 51, nickname: '账本会员' } },
@@ -450,7 +519,7 @@ test('one booking cancellation entry routes each reason to its distinct endpoint
  }
 });
 test('course details load by ID beyond a paginated first hundred and preserve all editable fields',async()=>{const h=pageHarness('admin/course-edit/course-edit.js',{'/admin/course-categories':[{id:1,name:'小班课'}],'/admin/courses/200':{id:200,categoryId:1,name:'测试课',durationMinutes:60,type:'GROUP',difficulty:'BEGINNER',creditsCost:1,price:90,targetUsers:'目标',trainingFocus:'重点',notices:'注意',status:'ON_SHELF',opaque:'must not submit'}});h.page.setData({id:200});await h.page.load();await h.page.save();const put=h.calls.find(c=>c.verb==='put');assert.equal(put.body.price,90);assert.equal(put.body.notices,'注意');assert.equal(put.body.opaque,undefined);assert.ok(!h.calls.some(c=>c.url.includes('size=100')));});
-test('schedule with history restricts protected fields and keeps capacity editable',async()=>{const h=pageHarness('admin/schedule-edit/schedule-edit.js',{'/admin/schedules/options':{courses:[],coaches:[],classrooms:[],qualifications:[]},'/admin/schedules/200':{courseId:1,coachId:1,classroomId:1,courseName:'历史课程',coachName:'历史教练',classroomName:'历史教室',courseDate:'2026-10-16',startTime:'09:00:00',endTime:'10:00:00',maxCapacity:8,hasBookingHistory:true,editable:true,cancellable:true}});h.page.setData({id:200});await h.page.load();assert.equal(h.page.data.originalSummary,'历史课程 · 历史教练 · 历史教室');assert.equal(h.page.data.fields.find(f=>f.key==='courseId').readonly,true);assert.ok(!h.page.data.fields.find(f=>f.key==='maxCapacity').readonly);assert.ok(!h.calls.some(c=>c.url.includes('size=100')));});
+test('schedule with history restricts protected fields and keeps capacity editable',async()=>{const h=pageHarness('admin/schedule-edit/schedule-edit.js',{'/admin/schedules/options':{courses:[],coaches:[],classrooms:[],qualifications:[]},'/admin/schedules/200':{courseId:1,coachId:1,classroomId:1,courseName:'历史课程',coachName:'历史教练',classroomName:'历史教室',courseDate:'2026-10-16',startTime:'09:00:00',endTime:'10:00:00',maxCapacity:8,hasBookingHistory:true,editable:true,cancellable:true}});h.page.setData({id:200});await h.page.load();assert.equal(h.page.data.originalSummary,'历史课程 · 历史教练 · 历史教室');assert.equal(h.page.data.courseFields[0].readonly,true);assert.ok(!h.page.data.fields.find(f=>f.key==='maxCapacity').readonly);assert.ok(!h.calls.some(c=>c.url.includes('size=100')));});
 test('rule form keeps dotted keys as literal configuration names',async()=>{const h=pageHarness('admin/rules/rules.js');h.page.change({detail:{key:'booking.max_per_day',value:'2'}});assert.equal(h.page.data.form['booking.max_per_day'],'2');await h.page.save();assert.equal(h.calls[0].body['booking.max_per_day'],2);assert.equal(h.calls[0].body.booking,undefined);});
 test('page load failure is caught and a later retry clears error',async()=>{const responses={'/admin/members':new Error('offline')},h=pageHarness('admin/members/members.js',responses);await h.page.load();assert.equal(h.page.data.error,'offline');assert.equal(h.page.data.busy,false);responses['/admin/members']={total:0,list:[]};await h.page.load();assert.equal(h.page.data.error,'');});
 test('all registered admin routes and event handlers resolve to existing files and functions',()=>{

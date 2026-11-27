@@ -1,16 +1,16 @@
 # 生产结构初始化、升级及恢复操作手册
 
-在隔离实例验证迁移、恢复及目标版本后，按确认的维护窗口运行。
+状态：仅在本地隔离实例演练。未连接真实业务库，未对其执行预检查或迁移。本手册供之后逐项审阅，不是自动升级授权。
 
 ## 版本与兼容关系
 
 | 版本 | 结构 | 运行条件 |
 |---|---|---|
 | Round2/3 旧应用 | 新有效预约索引，尚无生产扩展 | 不可假定其懂得 `auth_version` / outbox / 私有文件 |
-| 当前应用 | V001 至 V003，启用台账另需 V004 | FREE 模式、最小权限运行账号、持久 outbox。启动会核对版本、权限和时区 |
+| 本轮应用 | V001/V002/V003，历史记录全为 DONE 或经审核 BASELINED | 首发 FREE，DML 运行账号，无 Mock，持久 outbox；启动会核对版本、权限、时区 |
 | 未来结构 | 尚无兼容承诺 | 当前应用拒绝未知版本；先做候选制品往返测试 |
 
-V001 是现有完整结构（含 Round2 有效预约约束），V002 仅基础角色权限、FREE 规则和模板。V003 增加凭据版本、私有文件、outbox 及通知唯一约束。V004 增加线下会员、余额、课时台账与相关权限。生产新库使用这套版本化 SQL 初始化。
+V001 是现有完整结构（含 Round2 有效预约约束），V002 仅基础角色权限、FREE 规则和模板，不含账号、课程、教练、排课或虚构门店资料。V003 增加凭据版本、私有文件、outbox 及通知唯一约束。新库不能再执行旧 booking ALTER，不能加载 `init_data.sql`。
 
 MySQL 8.0.46 只保留历史兼容基线。8.0 已结束常规维护；云端版本需按 RDS 当期维护公告确认。MySQL 8.4 本地结果和云 RDS 内核验证分别记录。
 
@@ -68,11 +68,11 @@ java -Duser.timezone=Asia/Shanghai \
 ```
 
 - 新库：由独立管理员预建空库，再用 `fresh` 顺序执行。MySQL 单条 DDL 原子；V002 种子用单事务和角色编码关联，不假定角色 ID 从 1 开始；迁移工具用会话 advisory lock、版本校验和和已完成步数追踪，拒绝重复并行执行。
-- 未纳管的 Round3 旧库通过完整只读核对后，由操作人选择 `--mode adopt-round3`。工具核对表、列、预约和通知条件，将 V001/V002 标记 BASELINED，随后执行指定目录中的后续版本。更旧或不匹配的库先单独审核 Round2 升级。
-- 已完成且校验和相同的版本会跳过。校验和变化时工具停止，应核对已执行的原版本化 SQL。
+- 未纳管的 Round3 旧库：通过完整只读核对后，由操作人选择 `--mode adopt-round3`。工具核对原结构的表/列及预约/通知前置条件，将 V001/V002 标记 BASELINED，仅执行 V003，保留原授权，不重放基础数据。更旧或不匹配的库先单独审核 Round2 升级，不能自动冒充 Round3。
+- 重复执行：相同校验和及完成版本明确 SKIP；不同校验和停止。不得修改已执行的 V001～V003 来伪装成功。
 - 中断：默认拒绝 DIRTY。先逐条对照 SQL、information_schema 和 `schema_history.applied_steps` 确认状态。仅在操作人已确认记录步数与真实结构一致后用 `--mode resume-verified`。若 DDL 已提交但进度记录尚未提交，存在不确定窗口；必须人工审核、记录补正方案，不能盲目重试或删除历史。
 - 迁移账号权限限定在指定库。`provision` 模式由另外的账号管理员执行，示例字段见 `deploy/database-tool.properties.example`：创建 scoped runtime / migrator；遇已有同名账号安全失败，不复用未知宽权限。生产 RDS 如不支持该方式，使用平台安全渠道创建普通账号并显式授权、核对 SHOW GRANTS。
-- 运行账号的普通业务表权限为 SELECT/INSERT/UPDATE/DELETE。schema_history 仅 SELECT，studio_wallet_entry 和 studio_admin_audit 仅 SELECT/INSERT。启用台账前核对新增表的运行权限。迁移凭据由离线工具单独使用。
+- runtime 仅对业务表 SELECT/INSERT/UPDATE/DELETE，对 schema_history 仅 SELECT；无 root、DDL、GRANT、全局管理权限。生产启动会拒绝过宽或无法审核的继承授权。迁移凭据不装入运行容器。
 - `--mode bootstrap` 仅空后台账号表可用，用户名/姓名读受保护配置，口令由 stdin/控制台隐藏输入；至少 14 字符、最多 72 字节，BCrypt 12。已有账号就拒绝，不自动重置。
 
 ## 部署后检查与 Redis

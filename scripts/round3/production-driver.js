@@ -5,7 +5,7 @@
   await wait(()=>document.querySelectorAll('input').length>=2);
   const inputs=document.querySelectorAll('input'),v=window.__ACCEPTANCE_INPUT__;
   for(const [field,value] of [[inputs[0],v.username],[inputs[1],v.password]]){field.value=value;field.dispatchEvent(new Event('input',{bubbles:true}));}
-  document.querySelector('button').click();await wait(()=>localStorage.getItem('adminToken'));
+  document.querySelector('button').click();await wait(()=>sessionStorage.getItem('adminToken'));
   history.pushState(null,'','/schedules');window.dispatchEvent(new PopStateEvent('popstate'));
   await wait(()=>performance.getEntriesByType('resource').some(r=>r.name.includes('/api/admin/schedules/options')));
   await wait(()=>document.body.innerText.includes('测试课'));

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Build reviewed working-tree artifacts. No pushes/tags overwritten, no cloud operations."""
 import argparse,hashlib,json,os,pathlib,shutil,subprocess,tempfile,datetime
+import sys
 ROOT=pathlib.Path(__file__).resolve().parents[2];p=argparse.ArgumentParser(description=__doc__);p.add_argument('--output',required=True,type=pathlib.Path);p.add_argument('--docker-context',required=True);a=p.parse_args();a.output.mkdir(parents=True,exist_ok=True)
 def run(cmd,**kwargs):subprocess.run(list(map(str,cmd)),check=True,**({"cwd":ROOT}|kwargs))
 run(['python3',ROOT/'scripts/production/secret-scan.py'])
@@ -17,12 +18,14 @@ with tempfile.TemporaryDirectory(prefix='pilates-build-') as tempdir:
  for name,value in captured.items():
   path=snapshot/name;path.parent.mkdir(parents=True,exist_ok=True);path.write_bytes(value)
  server=temp/'server';admin=temp/'admin';edge=temp/'edge';server.mkdir();admin.mkdir();edge.mkdir()
- run(['mvn','-B','-ntp','-f',snapshot/'backend/pom.xml','-Dpilates.build.directory='+str(server/'target'),'-Dproject.build.outputTimestamp=2026-10-16T00:00:00Z','-Dmaven.test.skip=true','package'])
+ run([sys.executable,'-B',snapshot/'scripts/test-isolated.py','--online','--package',
+      '-Dpilates.build.directory='+str(server/'target'),'-Dproject.build.outputTimestamp=2026-10-16T00:00:00Z'])
+ run(['node','--test',*sorted((snapshot/'miniprogram/tests').glob('*.test.cjs'))],cwd=snapshot)
  shutil.copy(server/'target/pilates-server.jar',server/'pilates-server.jar');shutil.copy(snapshot/'deploy/Dockerfile.server.artifact',server/'Dockerfile')
  # npm ci uses the committed/working-tree lock file, never silently resolves a new version.
- run(['npm','ci'],cwd=snapshot/'frontend/admin')
- run(['npm','run','build'],cwd=snapshot/'frontend/admin')
- shutil.copytree(snapshot/'frontend/admin/dist',admin/'dist');shutil.copy(snapshot/'frontend/admin/nginx.conf',admin/'nginx.conf');shutil.copy(snapshot/'deploy/Dockerfile.admin.artifact',admin/'Dockerfile')
+ run(['npm','ci'],cwd=snapshot/'admin')
+ run(['npm','run','build'],cwd=snapshot/'admin')
+ shutil.copytree(snapshot/'admin/dist',admin/'dist');shutil.copy(snapshot/'admin/nginx.conf',admin/'nginx.conf');shutil.copy(snapshot/'deploy/Dockerfile.admin.artifact',admin/'Dockerfile')
  shutil.copy(snapshot/'deploy/Dockerfile.edge',edge/'Dockerfile');shutil.copy(snapshot/'deploy/nginx.conf',edge/'nginx.conf')
  for name,context in [('server',server),('admin',admin),('edge',edge)]:
   tag='pilates-'+name+':'+version;docker=['docker','--context',a.docker_context]
