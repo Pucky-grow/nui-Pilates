@@ -143,22 +143,12 @@ public class StatsService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    /**
-     * 经营账本总览: 营业额(今日/本周/本月/累计)、已上课数(同口径)、
-     * 课包剩余课次(小班/私教/合计)与待上课预约数. 已上课按账本表 studio_member_lesson
-     * (outcome=ATTENDED) 统计, 时间取对应场次 studio_lesson_session.start_at; 周从周一开始.
-     */
-    public Map<String, Object> studioLedgerOverview() {
+    /** 经营账本总览，金额及上课人次按门店日期统计，每周从周一开始。 */
+    public Map<String, Object> studioLedgerOverview(boolean canViewFinancials) {
         LocalDate today = StudioTime.today();
         LocalDateTime todayStart = today.atStartOfDay();
         LocalDateTime weekStart = today.minusDays(today.getDayOfWeek().getValue() - 1L).atStartOfDay();
         LocalDateTime monthStart = today.withDayOfMonth(1).atStartOfDay();
-
-        Map<String, Object> revenue = new LinkedHashMap<>();
-        revenue.put("today", sumPaid(todayStart, todayStart.plusDays(1)));
-        revenue.put("week", sumPaid(weekStart, null));
-        revenue.put("month", sumPaid(monthStart, null));
-        revenue.put("total", sumPaid(null, null));
 
         Map<String, Object> attended = new LinkedHashMap<>();
         attended.put("today", countAttended(todayStart, todayStart.plusDays(1)));
@@ -181,19 +171,73 @@ public class StatsService {
         remaining.put("private", privateCredits);
 
         long upcomingBookings = bookingMapper.selectCount(new LambdaQueryWrapper<BookingEntity>()
-                .in(BookingEntity::getStatus, List.of("BOOKED", "SIGNED_IN")));
+                .in(BookingEntity::getStatus, List.of("BOOKED", "SIGNED_IN")).apply("deleted = 0"));
 
         Map<String, Object> view = new LinkedHashMap<>();
-        view.put("revenue", revenue);
+        if (canViewFinancials) {
+            // 保留旧版小程序使用的订单实付字段。
+            view.put("revenue", Map.of(
+                    "today", sumPaid(todayStart, todayStart.plusDays(1)),
+                    "week", sumPaid(weekStart, null),
+                    "month", sumPaid(monthStart, null),
+                    "total", sumPaid(null, null)));
+            view.put("courseConsumption", courseConsumption(today));
+            view.put("netReceipts", netReceipts(today));
+        }
         view.put("attended", attended);
         view.put("remainingCredits", remaining);
         view.put("upcomingBookings", upcomingBookings);
         return view;
     }
 
+    private Map<String, BigDecimal> courseConsumption(LocalDate today) {
+        return sumLedgerAmounts(today, """
+                SELECT e.business_at, -e.delta_fen AS amount_fen
+                FROM studio_wallet_entry e
+                WHERE e.kind IN ('COURSE', 'CANCELLATION')
+                  AND NOT EXISTS (SELECT 1 FROM studio_wallet_entry r WHERE r.reversal_of = e.id)
+                """);
+    }
+
+    private Map<String, BigDecimal> netReceipts(LocalDate today) {
+        return sumLedgerAmounts(today, """
+                SELECT paid_at AS business_at, pay_amount * 100 AS amount_fen
+                FROM `order`
+                WHERE status IN ('PAID', 'REFUNDING', 'REFUNDED') AND deleted = 0
+                UNION ALL
+                SELECT refunded_at, -amount * 100
+                FROM refund
+                WHERE status = 'SUCCESS' AND deleted = 0
+                UNION ALL
+                SELECT business_at, CASE WHEN kind = 'REFUND' THEN -amount_fen ELSE amount_fen END
+                FROM studio_receipt
+                WHERE kind IN ('TOPUP', 'REFUND') AND state IN ('VERIFIED', 'VERIFIED_COVERED')
+                """);
+    }
+
+    private Map<String, BigDecimal> sumLedgerAmounts(LocalDate today, String transactions) {
+        LocalDate monday = today.minusDays(today.getDayOfWeek().getValue() - 1L);
+        return jdbc.queryForObject("""
+                SELECT COALESCE(SUM(CASE WHEN business_at >= ? THEN amount_fen END), 0) AS today_fen,
+                       COALESCE(SUM(CASE WHEN business_at >= ? THEN amount_fen END), 0) AS week_fen,
+                       COALESCE(SUM(CASE WHEN business_at >= ? THEN amount_fen END), 0) AS month_fen,
+                       COALESCE(SUM(amount_fen), 0) AS total_fen
+                FROM (%s) AS transactions
+                WHERE business_at < ?
+                """.formatted(transactions), (rs, row) -> Map.of(
+                "today", rs.getBigDecimal("today_fen").movePointLeft(2),
+                "week", rs.getBigDecimal("week_fen").movePointLeft(2),
+                "month", rs.getBigDecimal("month_fen").movePointLeft(2),
+                "total", rs.getBigDecimal("total_fen").movePointLeft(2)),
+                Timestamp.valueOf(today.atStartOfDay()), Timestamp.valueOf(monday.atStartOfDay()),
+                Timestamp.valueOf(today.withDayOfMonth(1).atStartOfDay()), Timestamp.valueOf(today.plusDays(1).atStartOfDay()));
+    }
+
+    /** 已上课人次: 只统计已核实的账本课程行(与扣费对账口径一致, 冲正/待核实/退回不计). */
     private long countAttended(LocalDateTime from, LocalDateTime to) {
         StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM studio_member_lesson l "
-                + "JOIN studio_lesson_session s ON l.session_id = s.id WHERE l.outcome = 'ATTENDED'");
+                + "JOIN studio_lesson_session s ON l.session_id = s.id "
+                + "WHERE l.outcome = 'ATTENDED' AND l.state = 'VERIFIED'");
         List<Object> args = new ArrayList<>();
         if (from != null) {
             sql.append(" AND s.start_at >= ?");

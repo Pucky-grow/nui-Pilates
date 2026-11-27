@@ -1,8 +1,93 @@
 @import "../management.wxss";
 
-.overview-title { display: flex; align-items: center; justify-content: space-between; gap: 16rpx; }
-.day-overview { background: #edf1e9; }
-.overview-stats { display: flex; gap: 12rpx; margin-top: 20rpx; }
-.overview-stats view { flex: 1; min-width: 0; display: flex; flex-direction: column; color: #495643; font-size: 24rpx; }
-.overview-number { font-size: 36rpx; font-weight: 650; }
+.overview-page {
+  max-width: 880rpx;
+  margin: 0 auto;
+}
+
+.period-control {
+  display: flex;
+  gap: 6rpx;
+  margin-bottom: 24rpx;
+  padding: 8rpx;
+  border-radius: 20rpx;
+  background: #e9ede5;
+}
+
+.period-button {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border-radius: 14rpx;
+  background: transparent;
+  color: #4f5b4a;
+  font-size: 27rpx;
+  line-height: 70rpx;
+}
+
+.period-button::after { border: 0; }
+
+.period-active {
+  background: #fff;
+  color: #2d4329;
+  font-weight: 600;
+  box-shadow: 0 2rpx 6rpx rgba(45, 67, 41, .12);
+}
+
+.overview-page .card { margin-bottom: 20rpx; }
+
+.money-card .title { font-size: 28rpx; }
+
+.consumption-card {
+  background: #40553b;
+  color: #fff;
+}
+
+.consumption-card .admin-caption { color: #e1e9dc; }
+
+.money-amount {
+  margin: 10rpx 0 8rpx;
+  font-size: 56rpx;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.attendance-card, .booking-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.attendance-card .admin-caption { margin-top: 6rpx; }
+.attendance-count { flex-shrink: 0; text-align: right; }
+.attendance-count .metric-label { margin-left: 8rpx; }
+
+.booking-row {
+  margin-top: 14rpx;
+  padding-bottom: 14rpx;
+  border-bottom: 1rpx solid #e7ebe3;
+}
+
+.credit-grid {
+  display: flex;
+  margin-top: 18rpx;
+  text-align: center;
+}
+
+.credit-item {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 6rpx;
+  min-width: 0;
+}
+
+.credit-item + .credit-item { border-left: 1rpx solid #e7ebe3; }
+.metric-label { color: #596552; font-size: 24rpx; }
+.overview-number { color: #354b30; font-size: 36rpx; font-weight: 650; }
+.overview-message { margin-bottom: 20rpx; color: #6f6458; font-size: 26rpx; }
 .workspace-link { color: #43563d; font-size: 27rpx; }
