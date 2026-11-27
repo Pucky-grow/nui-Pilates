@@ -368,6 +368,39 @@ class StudioLedgerHttpTest extends BookingFixture {
         assertEquals(40300, call("POST", fee, staff.token(), charge, UUID.randomUUID().toString()).path("code").asInt());
     }
 
+    @Test
+    void verifiedHistoricalCourseUpdatesConsumptionAndReverseRemovesIt() throws Exception {
+        var admin = actor("ADMIN");
+        String member = ROOT + "/members/" + create(admin, "SHARED").path("id").asLong();
+        String overview = "/api/admin/statistics/studio-ledger";
+        var classAt = StudioTime.today().minusMonths(2).atTime(14, 0);
+
+        long receipt = post(member + "/receipts", admin, Map.of("kind", "TOPUP", "amount", "1000",
+                "channel", "现金", "businessAt", classAt.minusDays(1), "reason", "补录收款"));
+        post(member + "/receipts/" + receipt + "/verify", admin, Map.of("version", 1, "reason", "核对收款"));
+        long session = post(ROOT + "/sessions", admin, Map.of("courseName", "历史小班", "coachName", "测试教练",
+                "courseType", "GROUP", "startAt", classAt, "endAt", classAt.plusHours(1), "price", "120"));
+        long lesson = post(member + "/lessons", admin,
+                Map.of("sessionId", session, "outcome", "ATTENDED", "decision", "RULE", "reason", "补录课程"));
+        String lessonPath = member + "/lessons/" + lesson;
+        assertEquals(0, ok("GET", overview, admin.token(), null, null).at("/courseConsumption/total").asInt());
+
+        var quote = ok("GET", lessonPath + "/quote", admin.token(), null, null);
+        post(lessonPath + "/verify", admin, Map.of("quote", quote.path("token").asText(), "reason", "核对后扣费"));
+        var afterCharge = ok("GET", overview, admin.token(), null, null);
+        assertEquals(120, afterCharge.at("/courseConsumption/total").asInt());
+        assertEquals(0, afterCharge.at("/courseConsumption/month").asInt());
+        assertEquals(1000, afterCharge.at("/netReceipts/total").asInt());
+        assertEquals(1, afterCharge.at("/attended/total").asInt());
+        assertEquals(88_000, balance(admin, member));
+
+        post(lessonPath + "/reverse", admin, Map.of("reason", "更正历史课费"));
+        var afterReverse = ok("GET", overview, admin.token(), null, null);
+        assertEquals(0, afterReverse.at("/courseConsumption/total").asInt());
+        assertEquals(1000, afterReverse.at("/netReceipts/total").asInt());
+        assertEquals(100_000, balance(admin, member));
+    }
+
     private JsonNode create(Actor admin, String mode) throws Exception {
         return ok("POST", ROOT + "/members", admin.token(), Map.of("nickname", "线下测试会员", "mode", mode), UUID.randomUUID().toString());
     }

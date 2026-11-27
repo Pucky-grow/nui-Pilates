@@ -52,16 +52,13 @@ public class StatsController {
         return Result.ok(statsService.coachStats());
     }
 
-    /** 经营账本: 营业额(日/周/月/累计)、已上课数、剩余课次、待上课预约. */
+    /** 经营账本的课程消费、净收款与运营统计。 */
     @GetMapping("/studio-ledger")
     @RequiresPerm("statistics:view")
     public Result<Map<String, Object>> studioLedger() {
         var user = com.yoyi.pilates.system.security.SecurityUtils.requireUser();
-        var view = statsService.studioLedgerOverview();
-        if (!user.isAdminRole() && !user.getRoles().contains("STORE_MANAGER")) {
-            view.remove("revenue");
-        }
-        return Result.ok(view);
+        boolean canViewFinancials = user.isAdminRole() || user.getRoles().contains("STORE_MANAGER");
+        return Result.ok(statsService.studioLedgerOverview(canViewFinancials));
     }
 
     /** 经营分析: 到课率/爽约率/上座率/复购率 */
