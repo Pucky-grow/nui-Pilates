@@ -53,7 +53,7 @@ yoyi:
     enabled: ${STUDIO_LEDGER_ENABLED:false}
   jwt:
     secret: ${JWT_SECRET:yoyi-pilates-dev-secret-key-please-change-in-prod-0123456789abcdef}
-    # 小程序 token 2 小时(登录保持, 超时自动退出重新登录); 后台 token 12 小时(毫秒)
+    # 小程序 token 2 小时(登录保持, 超时自动退出重新登录); 后台 token 2 小时(毫秒)
     mp-ttl: 7200000
     admin-ttl: 7200000
   cors:

@@ -123,6 +123,10 @@ class StatsOverviewHttpTest extends BookingFixture {
     }
 
     private void lesson(LocalDateTime startAt, String outcome, int seq) {
+        lesson(startAt, outcome, seq, "VERIFIED");
+    }
+
+    private void lesson(LocalDateTime startAt, String outcome, int seq, String state) {
         var holder = new GeneratedKeyHolder();
         jdbc.update(con -> {
             var ps = con.prepareStatement("INSERT INTO studio_lesson_session(schedule_id,source_ref,course_name,"
@@ -136,9 +140,9 @@ class StatsOverviewHttpTest extends BookingFixture {
             return ps;
         }, holder);
         long sessionId = holder.getKey().longValue();
-        jdbc.update("INSERT INTO studio_member_lesson(member_id,session_id,outcome,decision,reason,recorded_at) "
-                        + "VALUES(?,?,?,?,?,?)",
-                userId, sessionId, outcome, "RULE", "经营账本测试", startAt);
+        jdbc.update("INSERT INTO studio_member_lesson(member_id,session_id,outcome,decision,reason,recorded_at,state) "
+                        + "VALUES(?,?,?,?,?,?,?)",
+                userId, sessionId, outcome, "RULE", "经营账本测试", startAt, state);
     }
 
     private void pack(String type, int remaining, String status, int seq) {
@@ -173,14 +177,19 @@ class StatsOverviewHttpTest extends BookingFixture {
         lesson(today.minusDays(10).atTime(15, 0), "ATTENDED", 3);
         lesson(today.minusDays(40).atTime(15, 0), "ATTENDED", 4);
         lesson(today.atTime(16, 0), "NO_SHOW", 5);
+        // 待核实与已冲正的已上记录不计入人次
+        lesson(today.atTime(17, 0), "ATTENDED", 6, "PENDING_VERIFY");
+        lesson(today.atTime(18, 0), "ATTENDED", 7, "REVERSED");
 
         // 剩余课次: 小班 5 + 私教 3 有效, 过期课包 10 不计
         pack("GROUP", 5, "ACTIVE", 1);
         pack("PRIVATE", 3, "ACTIVE", 2);
         pack("GROUP", 10, "EXPIRED", 3);
 
-        // 待上课预约: 1 个 BOOKED
+        // 待上课预约: 1 个 BOOKED; 已删除的预约不计
         bookings.book(userId, scheduleId, null, null);
+        jdbc.update("INSERT INTO booking(booking_no,user_id,schedule_id,status,deleted) VALUES(?,?,?,'BOOKED',1)",
+                "deleted-" + UUID.randomUUID().toString().substring(0, 20), userId, scheduleId);
 
         var data = ok("/api/admin/statistics/studio-ledger", admin.token());
         assertAmount("100.00", data.path("revenue").path("today"));

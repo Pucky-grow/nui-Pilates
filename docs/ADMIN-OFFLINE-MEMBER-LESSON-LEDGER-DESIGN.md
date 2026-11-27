@@ -11,15 +11,15 @@
 | 已绑定的会员 | 只读查看本人已核实的历史课、结算结果和已入账流水。通过原入口查看正常预约 |
 | 普通教练、店长、员工 | 授课教练可以作为课程字段记录。账号同时具有 ADMIN 角色时才可操作该模块 |
 
-管理 API 同时检查后台登录主体和 `ADMIN` 角色，从登录态取操作人。核查现有会员查询及关联入口，避免仅隐藏按钮就让有 `member:view` 的后台账号读取未绑定档案或新账务数据。 [角色判定](/Users/xiaopacai/Desktop/plates/server/src/main/java/com/yoyi/pilates/system/security/LoginUser.java:35) [现有会员接口](/Users/xiaopacai/Desktop/plates/server/src/main/java/com/yoyi/pilates/member/interfaces/AdminMemberController.java:48)
+管理 API 同时检查后台登录主体和 `ADMIN` 角色，从登录态取操作人。核查现有会员查询及关联入口，避免仅隐藏按钮就让有 `member:view` 的后台账号读取未绑定档案或新账务数据。 [角色判定](../backend/src/main/java/com/yoyi/pilates/system/security/LoginUser.java:35) [现有会员接口](../backend/src/main/java/com/yoyi/pilates/member/interfaces/AdminMemberController.java:48)
 
 ## 2. 未注册会员的建档、代约和微信认领
 
 1. **先查后建。** ADMIN 按会员编号、姓名或脱敏联系方式核对已有会员。线下建档填写称呼、可选联系方式和原台账会员编号。原编号按来源去重，姓名和手机号仅用于辅助核对。
 2. **同一份档案贯穿后续流程。** 将 `user.openid` 扩展为允许空值，保留唯一索引。在一个事务创建用户、资料和会员，得到稳定的 `userId`、`memberId` 和会员编号。后台可以直接补录、记账或代约，未绑定身份无法获取会员登录态。
-3. **建档后可直接代约。** 建档提交后在同页选择未来排课，使用已有预约服务占座。两步各自持久化请求号。满员或超时可确认结果并改选，已建档会员可继续使用。历史补录使用独立入口。 [现有代约](/Users/xiaopacai/Desktop/plates/server/src/main/java/com/yoyi/pilates/booking/interfaces/AdminBookingController.java:73) [预约事务入口](/Users/xiaopacai/Desktop/plates/server/src/main/java/com/yoyi/pilates/booking/application/ScheduleExecution.java:35)
+3. **建档后可直接代约。** 建档提交后在同页选择未来排课，使用已有预约服务占座。两步各自持久化请求号。满员或超时可确认结果并改选，已建档会员可继续使用。历史补录使用独立入口。 [现有代约](../backend/src/main/java/com/yoyi/pilates/booking/interfaces/AdminBookingController.java:73) [预约事务入口](../backend/src/main/java/com/yoyi/pilates/booking/application/ScheduleExecution.java:35)
 4. **本人申请绑定。** ADMIN 发放短效一次性邀请，服务端保存随机码摘要。会员通过专用认领页提交新的微信登录凭证，后端换取微信身份并记录待核对申请。ADMIN 核对本人后，在事务内锁定档案和邀请，校验有效期、待绑定状态及 OpenID 归属，写入真实 OpenID 并消费邀请。确认前认领页只显示申请状态，确认后会员以原 `userId` 登录，历史课、余额和预约随原档案可见。
-5. **处理冲突。** 如果该微信已注册另一档案，保留两份记录并交 ADMIN 核实。双方已有流水或预约时走单独审批的合并流程。姓名和手机号不触发自动转账或合并。未绑定档案需在令牌加载和依赖 OpenID 的通知等入口明确拦截。 [用户结构](/Users/xiaopacai/Desktop/plates/database/production/V001__structure.sql:22) [现有微信登录](/Users/xiaopacai/Desktop/plates/server/src/main/java/com/yoyi/pilates/user/application/AuthService.java:60) [会员初始化](/Users/xiaopacai/Desktop/plates/server/src/main/java/com/yoyi/pilates/member/application/MemberService.java:30)
+5. **处理冲突。** 如果该微信已注册另一档案，保留两份记录并交 ADMIN 核实。双方已有流水或预约时走单独审批的合并流程。姓名和手机号不触发自动转账或合并。未绑定档案需在令牌加载和依赖 OpenID 的通知等入口明确拦截。 [用户结构](../database/production/V001__structure.sql:22) [现有微信登录](../backend/src/main/java/com/yoyi/pilates/user/application/AuthService.java:60) [会员初始化](../backend/src/main/java/com/yoyi/pilates/member/application/MemberService.java:30)
 
 ## 3. ADMIN 可配置的余额与费用
 
@@ -38,13 +38,13 @@ ADMIN 可设门店默认模式，也可为单个会员选择模式。修改门�
 
 - 每场课保存**小班课或私教课**、教练、原上课时间和单人标准价。已有排课可以带出课程类型。旧课种不一致时保留原类型，由 ADMIN 确认本次结算所用课型。小班的同一场次可关联多个会员。
 - ADMIN 按课型设置默认规则，支持在具体场次选择不同规则。实到课可按本节确认价扣费或免扣，**爽约和会员临时取消**各自可设为免扣、固定金额或按本节确认价的比例。个别会员可以由 ADMIN 改用另一金额，需写原因。建议首版罚费上限为本节确认价，门店取消和按时取消免扣。
-- 临时取消用**实际取消时间**与**原定开课时间**判断。建议等于截止点算按时，超过截止点且开课前取消算临时。例子中的课程 18:00 开始，免费窗口为 2 小时，16:00 取消按时，16:01 取消按临时处理。爽约需核实课已结束、会员未到且未提前取消。不能仅凭原预约状态 `CANCELLED` 判断是谁取消或是否应收。 [现有退约规则](/Users/xiaopacai/Desktop/plates/server/src/main/java/com/yoyi/pilates/booking/application/BookingService.java:106)
+- 临时取消用**实际取消时间**与**原定开课时间**判断。建议等于截止点算按时，超过截止点且开课前取消算临时。例子中的课程 18:00 开始，免费窗口为 2 小时，16:00 取消按时，16:01 取消按临时处理。爽约需核实课已结束、会员未到且未提前取消。不能仅凭原预约状态 `CANCELLED` 判断是谁取消或是否应收。 [现有退约规则](../backend/src/main/java/com/yoyi/pilates/booking/application/BookingService.java:106)
 - 规则按生效时间发布新版本。补旧课优先选当时的价格或收费约定。缺少当时记录时，ADMIN 可选择仅记课待核实，或在核实有依据后明确填写收费判断、金额和依据。当前价格不会默认套用到旧课。确认后固化课型、原价、结果、取消时间和来源、收费规则版本、公式及金额、所扣账户和调整原因。比例使用整数基点，最终金额四舍五入到分。若确认价为 ¥280、当时约定临时取消收 30%，核实后只入账 ¥84。
-- 首版未来代约先占座。费用在实际结果出来后由 ADMIN 核实结算。现有预约规则校验可约时段和容量。现有课包扣的是课时，`member.total_consumption` 是累计消费，人民币余额和费用单独建账。 [现有可约规则](/Users/xiaopacai/Desktop/plates/server/src/main/java/com/yoyi/pilates/course/application/BookingPolicy.java:36) [课时扣减](/Users/xiaopacai/Desktop/plates/server/src/main/java/com/yoyi/pilates/booking/application/BookingTxService.java:49)
+- 首版未来代约先占座。费用在实际结果出来后由 ADMIN 核实结算。现有预约规则校验可约时段和容量。现有课包扣的是课时，`member.total_consumption` 是累计消费，人民币余额和费用单独建账。 [现有可约规则](../backend/src/main/java/com/yoyi/pilates/course/application/BookingPolicy.java:36) [课时扣减](../backend/src/main/java/com/yoyi/pilates/booking/application/BookingTxService.java:49)
 
 ## 4. 历史补录与核实后直接入账
 
-ADMIN 从会员详情进入「补历史课」或「记历史充值」。课程补录可关联已结束的原排课或预约，也可新建线下场次。原预约和会员、场次须相符，已存在的预约与补录关联展示一次。线下场次按原始来源编号去重，无编号时用会员、上课时间和教练提示可能重复，核实后再建立记录。原记录已有课包扣减、另一笔余额扣费或外部结清凭据时，阻止再次扣费。历史记录采用独立表，避开实时预约、出勤、积分及消息链路。 [预约与签到结构](/Users/xiaopacai/Desktop/plates/database/production/V001__structure.sql:215)
+ADMIN 从会员详情进入「补历史课」或「记历史充值」。课程补录可关联已结束的原排课或预约，也可新建线下场次。原预约和会员、场次须相符，已存在的预约与补录关联展示一次。线下场次按原始来源编号去重，无编号时用会员、上课时间和教练提示可能重复，核实后再建立记录。原记录已有课包扣减、另一笔余额扣费或外部结清凭据时，阻止再次扣费。历史记录采用独立表，避开实时预约、出勤、积分及消息链路。 [预约与签到结构](../database/production/V001__structure.sql:215)
 
 课程的业务结果与账务结果分开。业务结果包括已上课、爽约、按时取消、临时取消、门店取消、待确认。待确认也适用于只知道以前约过课的情况。ADMIN 核实课程时看到原记录、费用依据、钱包分项、应扣金额和预计余额。
 
@@ -82,7 +82,7 @@ ADMIN 从会员详情进入「补历史课」或「记历史充值」。课程�
 
 小程序「我的」新增「历史课程」与「余额明细」。历史课程显示已核实的课程时间、教练、课型、上课或取消结果、结算状态、扣费和可公开的费用理由。「已核实，待结算」显示待扣金额，余额只以已入账流水为准。待核实草稿、内部备注、原始凭据和后台操作人仅供 ADMIN 查看。冲正后会员可看到原流水的更正状态及对应返还，不会出现原金额无痕变更。
 
-余额页按通用或分账模式显示可用余额，已停用账户的历史流水仍归本人。查询由服务端从当前已绑定的会员登录态解析唯一 `memberId`，列表和明细都带本人条件。接口无需客户端传目标会员编号。返回会员专用视图，采用分页并禁用共享缓存，账号切换清理本地账单状态。认领确认前只有 ADMIN 能在后台查看完整档案。历史课页与正常预约页分开，历史补录不提供取消或签到按钮。 [会员登录校验](/Users/xiaopacai/Desktop/plates/server/src/main/java/com/yoyi/pilates/system/security/SecurityUtils.java:24) [现有本人预约查询](/Users/xiaopacai/Desktop/plates/server/src/main/java/com/yoyi/pilates/booking/application/BookingQueryService.java:57)
+余额页按通用或分账模式显示可用余额，已停用账户的历史流水仍归本人。查询由服务端从当前已绑定的会员登录态解析唯一 `memberId`，列表和明细都带本人条件。接口无需客户端传目标会员编号。返回会员专用视图，采用分页并禁用共享缓存，账号切换清理本地账单状态。认领确认前只有 ADMIN 能在后台查看完整档案。历史课页与正常预约页分开，历史补录不提供取消或签到按钮。 [会员登录校验](../backend/src/main/java/com/yoyi/pilates/system/security/SecurityUtils.java:24) [现有本人预约查询](../backend/src/main/java/com/yoyi/pilates/booking/application/BookingQueryService.java:57)
 
 ## 7. 存储、事务与接口边界
 
@@ -95,7 +95,7 @@ ADMIN 从会员详情进入「补历史课」或「记历史充值」。课程�
 | `studio_fee_policy_version` | 规则适用课型、时间范围、取消截止、免扣或固定额或比例。生效范围无重叠，已使用版本留存 |
 | `member_claim_invite`、`studio_admin_command`、`studio_admin_audit` | 邀请摘要与状态。持久化请求号、内容摘要、结果编号。记录操作人、时间、理由、变更前后值和关联流水 |
 
-金额输入使用十进制元文本，后端精确转换为整数分，校验精度、上限及非负条件。统一按会员、账户编号、关联课或原流水的顺序加锁。核实入账时校验版本、凭据去重、余额和有效扣费唯一性，将课或收据状态、钱包余额、流水、审计和幂等结果一起提交。任一步失败一起回滚。相同请求号与相同内容返回原结果，改内容复用请求号返回冲突。新请求号仍受业务唯一约束限制。财务审计随主事务写入，普通 `@OpLog` 仅补充脱敏日志。 [现有通用审计行为](/Users/xiaopacai/Desktop/plates/server/src/main/java/com/yoyi/pilates/common/aspect/OpLogAspect.java:58)
+金额输入使用十进制元文本，后端精确转换为整数分，校验精度、上限及非负条件。统一按会员、账户编号、关联课或原流水的顺序加锁。核实入账时校验版本、凭据去重、余额和有效扣费唯一性，将课或收据状态、钱包余额、流水、审计和幂等结果一起提交。任一步失败一起回滚。相同请求号与相同内容返回原结果，改内容复用请求号返回冲突。新请求号仍受业务唯一约束限制。财务审计随主事务写入，普通 `@OpLog` 仅补充脱敏日志。 [现有通用审计行为](../backend/src/main/java/com/yoyi/pilates/common/aspect/OpLogAspect.java:58)
 
 | 建议接口 | 用途 |
 | --- | --- |
@@ -111,7 +111,7 @@ ADMIN 从会员详情进入「补历史课」或「记历史充值」。课程�
 
 ## 8. 实施顺序与验收
 
-1. **数据库兼容。** 现有云预检与数据库启动检查严格验证 V001 至 V003。先准备兼容旧结构和增量迁移的过渡版本及回退镜像，更新校验与迁移清单。隔离测试库备份后以独立迁移账号执行新增 DDL，应用账号按新表所需权限授权。发生回退时关闭新增写入入口，保留已落库档案、流水及未绑定身份兼容。 [数据库启动校验](/Users/xiaopacai/Desktop/plates/server/src/main/java/com/yoyi/pilates/common/config/ProductionDatabaseGuard.java:14) [云预检](/Users/xiaopacai/Desktop/plates/server/src/main/java/com/yoyi/pilates/infra/tools/CloudrunPreflight.java:85)
+1. **数据库兼容。** 现有云预检与数据库启动检查严格验证 V001 至 V003。先准备兼容旧结构和增量迁移的过渡版本及回退镜像，更新校验与迁移清单。隔离测试库备份后以独立迁移账号执行新增 DDL，应用账号按新表所需权限授权。发生回退时关闭新增写入入口，保留已落库档案、流水及未绑定身份兼容。 [数据库启动校验](../backend/src/main/java/com/yoyi/pilates/common/config/ProductionDatabaseGuard.java:14) [云预检](../backend/src/main/java/com/yoyi/pilates/infra/tools/CloudrunPreflight.java:85)
 2. **验证 ADMIN 闭环。** 覆盖未注册建档、未来代约、待核实充值和课程、两种旧账方式。草稿对余额无影响，核实并扣费成功后当页能看到流水和新余额。同课并发核实、同单重复提交、超时重试都只能入账一次。
 3. **验证费用规则和分账。** 覆盖爽约免扣与收费、临时取消固定额与比例、截止时间边界、门店取消、缺少原始时间、规则修改和价格快照。小班余额足而私教不足时，私教记录进入待结算。充值后续结算沿用核实金额。模式切换前后总余额相同，历史冲正可追溯。两笔并发扣费只有一笔有足够余额时，验证另一笔没有部分扣款。
 4. **验证绑定和权限。** 覆盖过期、撤销、重复认领、并行首次微信登录、已有 OpenID 冲突。绑定前后档案 ID、原预约和余额一致。会员甲无法查询会员乙，待核实凭据不会从会员端返回。店长、员工及普通教练直调管理接口被拒绝。最后用体验版和隔离库实测，再选少量核对过的真实会员分批录入。
@@ -120,7 +120,7 @@ ADMIN 从会员详情进入「补历史课」或「记历史充值」。课程�
 
 ## 9. 可选授权方案，教练和工作人员决定临时取消费
 
-ADMIN 可选择启用「临时取消费处理」权限，并授予指定账号。授权后的教练仅处理本人授课的排课。前台或店长处理当前单门店范围。将来多门店须在后端校验账号、排课与门店的关联。首版授予临时取消费的处理权，爽约费仍由 ADMIN 核实。 [现有教练排课归属检查](/Users/xiaopacai/Desktop/plates/server/src/main/java/com/yoyi/pilates/booking/interfaces/CoachEndController.java:96)
+ADMIN 可选择启用「临时取消费处理」权限，并授予指定账号。授权后的教练仅处理本人授课的排课。前台或店长处理当前单门店范围。将来多门店须在后端校验账号、排课与门店的关联。首版授予临时取消费的处理权，爽约费仍由 ADMIN 核实。 [现有教练排课归属检查](../backend/src/main/java/com/yoyi/pilates/booking/interfaces/CoachEndController.java:96)
 
 | 操作 | 业务边界 |
 | --- | --- |
@@ -136,4 +136,4 @@ ADMIN 可选择启用「临时取消费处理」权限，并授予指定账号�
 
 - ADMIN 在「会员账本」新建线下会员，或从「会员管理」打开已有会员的账本。补课先创建或关联场次，再选择课程结果和收费依据。补录保存后进入待核实。核实入账、续结算和冲正都从该会员的账本操作。
 - 在账本中关联排课、设置价格并确认条款后代约，可生成临时取消费记录。会员自行取消或 ADMIN 记录代会员取消时，系统校验原预约的免费窗口。授权人员可在原定开课后处理。会员从小程序「我的」查看已核实历史课、余额及取消费结果。
-- 后端管理接口实际位于 `/api/admin/studio-ledger`，授权的取消费处理接口位于 `/api/studio/late-fees`。隔离环境先应用 V004 和应用账号授权，再设置 `STUDIO_LEDGER_ENABLED=true`。开关默认关闭。 [V004 迁移](/Users/xiaopacai/Desktop/plates/database/production/V004__studio_ledger.sql) [应用账号授权草案](/Users/xiaopacai/Desktop/plates/deploy/wechat-cloudrun/grant-studio-ledger.draft.sql)
+- 后端管理接口实际位于 `/api/admin/studio-ledger`，授权的取消费处理接口位于 `/api/studio/late-fees`。隔离环境先应用 V004 和应用账号授权，再设置 `STUDIO_LEDGER_ENABLED=true`。开关默认关闭。 [V004 迁移](../database/production/V004__studio_ledger.sql) [应用账号授权草案](../deploy/wechat-cloudrun/grant-studio-ledger.draft.sql)
