@@ -5,7 +5,7 @@
   <image wx:if="{{course.cover}}" class="cover" src="{{course.cover}}" mode="aspectFill" />
   <view class="card">
     <view class="name">{{course.name}}</view>
-    <view class="tags"><text class="tag">{{course.type}}</text><text class="tag">{{course.difficulty}}</text><text class="tag">{{course.durationMinutes}}分钟</text></view>
+    <view class="tags"><text wx:if="{{course.typeText}}" class="tag">{{course.typeText}}</text><text wx:if="{{course.difficultyText}}" class="tag">{{course.difficultyText}}</text><text class="tag">{{course.durationMinutes}}分钟</text></view>
     <view class="price">{{bookingMode === 'FREE' ? '免费预约 · 无需购买课包' : '使用适用课包预约'}}</view>
   </view>
   <view class="card">

@@ -1,3 +1,5 @@
+@import "../../styles/member.wxss";
+.confirmation-page { padding: 28rpx 28rpx 136rpx; padding-bottom: calc(136rpx + env(safe-area-inset-bottom)); }
 .name { font-size: 36rpx; font-weight: 600; }
 .time { color: var(--sage-deep); font-weight: 600; margin: 12rpx 0; }
 .go-btn { width: 360rpx; margin: 30rpx auto; }
@@ -5,4 +7,4 @@
 .pkg-option:last-child { border-bottom: none; }
 .pkg-info { margin-left: 12rpx; }
 .remark { border: 2rpx solid var(--line); border-radius: 12rpx; padding: 16rpx; }
-.footer { padding: 24rpx; position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg); }
+.footer { padding: 20rpx 28rpx; padding-bottom: calc(20rpx + env(safe-area-inset-bottom)); position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg); }

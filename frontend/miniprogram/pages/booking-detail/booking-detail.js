@@ -2,7 +2,8 @@
 const api = require('../../services/api');
 const http = require('../../utils/request');
 const { cancellationNotice } = require('../../utils/studio-ledger');
-const STATUS = { BOOKED: '已预约', SIGNED_IN: '已签到', COMPLETED: '已完成', CANCELLED: '已取消', NO_SHOW: '已爽约' };
+const { bookingDisplay } = require('../../utils/member-booking');
+const STATUS = { BOOKED: '已预约', SIGNED_IN: '已签到', COMPLETED: '已完成', CANCELLED: '已取消', NO_SHOW: '未到课', REFUNDED: '已退款' };
 
 Page({
   data: { b: null, statusText: STATUS, cancelling: false, loading: true, error: '' },
@@ -18,7 +19,7 @@ Page({
     const requestId = this.requestId = (this.requestId || 0) + 1;
     this.setData({ loading: true, error: '' });
     return api.bookingDetail(this.id).then(b => {
-      if (requestId === this.requestId) this.setData({ b, loading: false });
+      if (requestId === this.requestId) this.setData({ b: bookingDisplay(b), loading: false });
     }).catch(error => {
       if (requestId === this.requestId) this.setData({ loading: false, error: error?.message || '预约详情加载失败' });
     });
@@ -39,6 +40,6 @@ Page({
       fail: () => this.setData({ cancelling: false })
     });
   },
-  checkin() { wx.navigateTo({ url: '/pages/checkin/checkin?bookingId=' + this.id }); },
+  checkin() { if (this.data.b?.canCheckin) wx.navigateTo({ url: '/pages/checkin/checkin?bookingId=' + this.id }); },
   review() { wx.navigateTo({ url: '/pages/review/review?bookingId=' + this.id }); }
 });

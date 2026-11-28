@@ -1,4 +1,5 @@
 const api = require('../../services/api');
+const { difficultyLabels, typeLabels } = require('../../utils/member-booking');
 Page({
   data: { course: null, schedules: [], reviews: [], loading: true, error: '', bookingMode: '', waitlistEnabled: false },
   onLoad(options) { this.id = options.id; },
@@ -6,7 +7,7 @@ Page({
   load() {
     this.setData({ loading: true, error: '' });
     return Promise.all([api.courseDetail(this.id), api.courseSchedules(this.id), api.bookingRules()])
-      .then(([course, schedules, rules]) => { this.setData({ course, schedules, bookingMode: rules.bookingMode, waitlistEnabled: rules.waitlistEnabled === true, loading: false }); return api.courseReviews(this.id).then(d => this.setData({ reviews: d.list })).catch(() => {}); })
+      .then(([course, schedules, rules]) => { this.setData({ course: { ...course, typeText: typeLabels[course.type] || '', difficultyText: difficultyLabels[course.difficulty] || '' }, schedules, bookingMode: rules.bookingMode, waitlistEnabled: rules.waitlistEnabled === true, loading: false }); return api.courseReviews(this.id).then(d => this.setData({ reviews: d.list })).catch(() => {}); })
       .catch(e => this.setData({ loading: false, error: (e && e.message) || '课程加载失败，请重试' }));
   },
   goBooking(e) {

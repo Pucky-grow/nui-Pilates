@@ -1,35 +1,38 @@
-<view class="page">
-  <view class="card">
-    <view class="heading">可用余额</view>
-    <view wx:for="{{accounts}}" wx:key="bucket">{{item.name}}　¥{{item.amount}}</view>
-  </view>
-  <view class="tabs">
-    <button size="mini" disabled="{{tab === 'history'}}" data-tab="history" bindtap="tab">历史课程</button>
-    <button size="mini" disabled="{{tab === 'entries'}}" data-tab="entries" bindtap="tab">余额明细</button>
-    <button size="mini" disabled="{{tab === 'fees'}}" data-tab="fees" bindtap="tab">取消费</button>
-  </view>
-  <view wx:if="{{error}}" class="card" bindtap="retry">{{error}}　重试</view>
-  <view wx:elif="{{!list.length && !busy}}" class="card">暂无记录</view>
-  <block wx:if="{{tab === 'fees'}}">
-    <view wx:for="{{list}}" wx:key="booking_id" class="card">
-      <view class="heading">{{item.course_name}}　{{item.stateText}}</view>
-      <view>{{item.timeText}}　{{item.coach_name}}</view>
-      <view wx:if="{{item.state !== 'WAIVED'}}">金额 ¥{{item.amountText}}</view>
-    </view>
-  </block>
-  <block wx:else>
-    <view wx:for="{{list}}" wx:key="id" class="card">
-      <view wx:if="{{tab === 'history'}}">
-        <view class="heading">{{item.course_name}}　{{item.outcomeText}}</view>
-        <view>{{item.timeText}}　{{item.coach_name}} · {{item.typeText}}</view>
-        <view>{{item.stateText}} {{item.basisText}}<text wx:if="{{item.amount_fen}}">　¥{{item.amountText}}</text><text wx:if="{{item.reportedText}}">　原费用 ¥{{item.reportedText}}</text></view>
-      </view>
-      <view wx:else>
-        <view class="heading">{{item.kindText}}　¥{{item.amountText}}</view>
-        <view>{{item.timeText}}　{{item.typeText}}</view>
-        <view>该笔入账后余额 ¥{{item.afterText}} <text wx:if="{{item.reversed_by}}"> · 已冲正</text></view>
+<view class="member-page">
+  <view class="member-card balance">
+    <view class="member-heading">可用余额</view>
+    <view wx:if="{{walletLoading}}" class="balance-meta">正在读取余额…</view>
+    <view wx:elif="{{walletError}}" class="balance-meta">{{walletError}}<button class="member-action secondary" bindtap="loadWallet">重试余额</button></view>
+    <view wx:else class="balance-grid">
+      <view wx:for="{{accounts}}" wx:key="bucket" class="balance-item">
+        <view class="balance-amount">{{item.amount}}</view>
+        <view class="balance-meta">{{item.name}}</view>
       </view>
     </view>
+  </view>
+  <view class="member-tabs">
+    <button wx:for="{{tabOptions}}" wx:key="key" class="member-chip {{tab === item.key ? 'selected' : ''}}" aria-pressed="{{tab === item.key}}" data-tab="{{item.key}}" bindtap="selectTab">{{item.label}}</button>
+  </view>
+
+  <view wx:if="{{tab === 'history'}}" class="member-meta ledger-note">这里显示门店补录的历史课。小程序内预约可在「我的预约」查看。</view>
+  <view wx:if="{{listLoading && !groups.length}}" class="member-state">正在读取记录…</view>
+  <view wx:if="{{listError}}" class="member-state">{{listError}}<button class="member-action secondary" bindtap="retryRows">重新加载</button></view>
+  <view wx:if="{{!listLoading && !listError && !groups.length}}" class="member-state">{{emptyText[tab]}}</view>
+  <block wx:for="{{groups}}" wx:for-item="group" wx:key="key">
+    <view class="day-heading">{{group.date}}</view>
+    <view class="member-card ledger-group">
+      <view wx:for="{{group.rows}}" wx:key="id" class="member-line ledger-row">
+        <view class="ledger-main">
+          <view class="member-heading ledger-title">{{item.title}}</view>
+          <view wx:if="{{item.detail}}" class="member-meta">{{item.detail}}</view>
+          <view wx:if="{{item.note}}" class="member-meta">{{item.note}}</view>
+        </view>
+        <view wx:if="{{item.amount || item.status}}" class="ledger-value {{item.tone}}">
+          <view wx:if="{{item.amount}}" class="ledger-amount">{{item.amount}}</view>
+          <view wx:if="{{item.status}}">{{item.status}}</view>
+        </view>
+      </view>
+    </view>
   </block>
-  <button wx:if="{{more}}" disabled="{{busy}}" bindtap="next">加载更多</button>
+  <button wx:if="{{more && !listError}}" class="member-action secondary load-more" loading="{{listLoading}}" disabled="{{listLoading}}" bindtap="next">加载更多</button>
 </view>

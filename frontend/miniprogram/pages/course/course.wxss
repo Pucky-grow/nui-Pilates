@@ -1,11 +1,18 @@
-.filter-bar { display: flex; padding: 16rpx 24rpx; gap: 16rpx; white-space: nowrap; overflow-x: auto; }
-.fb-item { padding: 8rpx 26rpx; border-radius: 30rpx; background: #fff; color: var(--text-light); font-size: 24rpx; flex-shrink: 0; }
-.fb-item.on { background: var(--sage); color: #fff; }
-.sched-head { display: flex; justify-content: space-between; align-items: center; }
-.sched-name { font-size: 32rpx; font-weight: 600; }
-.sched-time { color: var(--sage-deep); font-weight: 600; margin: 10rpx 0; }
-.sched-foot { display: flex; align-items: center; margin-top: 16rpx; }
-.remain { font-size: 24rpx; color: var(--sage-deep); }
-.remain.few { color: var(--danger); }
-.cost { font-size: 24rpx; color: var(--text-light); margin-left: 16rpx; }
-.sched-btn { margin-left: auto; font-size: 24rpx; padding: 10rpx 30rpx; }
+@import "../../styles/member.wxss";
+.filter-action { min-height: 68rpx; padding: 10rpx 20rpx; }
+.date-scroll { margin: 22rpx 0; white-space: nowrap; }
+.dates { display: inline-flex; gap: 10rpx; padding: 2rpx 0; }
+.date-button { margin: 0; min-width: 100rpx; padding: 10rpx 12rpx; border-radius: 14rpx; font-size: 22rpx; line-height: 1.55; color: #625d52; background: #fff; }
+.date-button::after, .filter-chip::after { border: 0; }
+.date-label { display: block; font-size: 26rpx; font-weight: 650; }
+.date-button.selected { background: #40563b; color: #fff; }
+.filters { padding: 18rpx; }
+.filter-options { display: flex; gap: 8rpx; flex-wrap: wrap; }
+.filter-options + .filter-options { margin-top: 10rpx; }
+.filter-chip { margin: 0; min-height: 68rpx; padding: 10rpx 14rpx; font-size: 24rpx; line-height: 1.7; border-radius: 12rpx; background: #f4f2ec; color: #59584e; }
+.filter-chip.selected { background: #e1eadd; color: #344b30; font-weight: 650; }
+.schedule-time { color: #364b32; font-size: 31rpx; font-weight: 700; }
+.course-title { margin: 8rpx 0 4rpx; }
+.sold-out { background: #f2eee5; color: #625d52; }
+.schedule-action { display: flex; justify-content: flex-end; margin-top: 12rpx; }
+.schedule-action:empty { display: none; }

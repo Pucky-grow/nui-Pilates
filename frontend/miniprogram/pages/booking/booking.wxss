@@ -1,10 +1,13 @@
-.filter-bar { display: flex; padding: 16rpx 24rpx; gap: 16rpx; }
-.fb-item { padding: 8rpx 26rpx; border-radius: 30rpx; background: #fff; color: var(--text-light); font-size: 24rpx; }
-.fb-item.on { background: var(--sage); color: #fff; }
-.go-btn { width: 360rpx; margin: 30rpx auto; }
-.b-head { display: flex; justify-content: space-between; }
-.b-name { font-size: 30rpx; font-weight: 600; }
-.b-status { font-size: 24rpx; color: var(--sage-deep); }
-.b-time { color: var(--sage-deep); font-weight: 600; margin: 10rpx 0; }
-.b-foot { display: flex; align-items: center; margin-top: 16rpx; }
-.b-cancel, .b-checkin { margin-left: auto; font-size: 24rpx; padding: 8rpx 26rpx; }
+@import "../../styles/member.wxss";
+.next-booking { background: #40563b; color: #fff; }
+.next-label { color: #ecf2e8; font-size: 26rpx; margin-top: 7rpx; }
+.next-time { font-size: 38rpx; font-weight: 700; margin: 8rpx 0; }
+.booking-actions { display: flex; gap: 14rpx; margin-top: 22rpx; }
+.booking-actions .member-action { flex: 1; }
+.sign-in { background: #fff; color: #364b32; }
+.booking-time { font-size: 29rpx; color: #40563b; font-weight: 650; padding: 4rpx 0; }
+.history-list { padding-top: 4rpx; padding-bottom: 4rpx; }
+.history-row { padding: 22rpx 0; }
+.history-row .member-meta { margin-top: 6rpx; }
+.history-status { background: #f1eee6; color: #625d52; flex-shrink: 0; }
+.rebook { margin-top: 12rpx; margin-left: auto; }

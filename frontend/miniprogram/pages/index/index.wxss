@@ -1,38 +1,30 @@
-.hero { padding: 40rpx 32rpx 20rpx; }
-.hero-title { font-size: 44rpx; font-weight: 700; color: var(--text); }
-.hero-slogan { color: var(--text-light); font-size: 26rpx; margin-top: 8rpx; }
-
-.banner { margin: 0 24rpx; border-radius: 20rpx; overflow: hidden; height: 300rpx; }
-.banner-bg { width: 100%; height: 300rpx; background: linear-gradient(135deg, #C9CDBF, #7A8B6F); }
-.banner-img { width: 100%; height: 300rpx; }
-.banner-mask { position: absolute; left: 0; bottom: 0; width: 100%; padding: 40rpx 24rpx 20rpx; background: linear-gradient(transparent, rgba(0,0,0,0.45)); color: #fff; }
-.banner-title { font-size: 34rpx; font-weight: 600; display: block; }
-.banner-sub { font-size: 24rpx; opacity: 0.9; }
-
-.quick { display: flex; justify-content: space-around; padding: 30rpx 20rpx; }
-.quick-item { text-align: center; font-size: 24rpx; color: var(--text); }
-.qi-icon { display: block; width: 96rpx; height: 96rpx; margin: 0 auto 12rpx; padding: 22rpx; box-sizing: border-box; border-radius: 50%; background: #EFF3EC; }
-
-.newbie { display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #F4EEE5, #EFF3EC); }
-.newbie-tag { color: var(--brown); font-size: 22rpx; }
-.newbie-name { font-size: 32rpx; font-weight: 600; margin: 6rpx 0; }
-.newbie-btn { width: 180rpx; padding: 14rpx 0; }
-
-.section-title { margin: 30rpx 24rpx 20rpx; font-size: 32rpx; font-weight: 600; display: flex; align-items: center; }
-.section-title::before { content: ''; width: 8rpx; height: 32rpx; background: var(--sage); border-radius: 4rpx; margin-right: 14rpx; }
-
-.h-scroll { white-space: nowrap; padding: 0 24rpx; }
-.course-card { display: inline-block; width: 220rpx; background: var(--card); border-radius: 16rpx; padding: 24rpx; margin-right: 20rpx; box-shadow: 0 4rpx 12rpx rgba(74,66,58,0.06); }
-.cc-time { color: var(--sage-deep); font-size: 30rpx; font-weight: 600; }
-.cc-name { font-size: 26rpx; margin: 8rpx 0; }
-.course-row { }
-.course-name { font-size: 30rpx; font-weight: 600; }
-
-.coach-card { display: inline-block; width: 200rpx; text-align: center; margin-right: 20rpx; }
-.coach-avatar { width: 120rpx; height: 120rpx; }
-.coach-name { font-size: 28rpx; font-weight: 600; margin-top: 10rpx; }
-
-.article-row { }
-.article-title { font-size: 28rpx; font-weight: 500; margin-bottom: 8rpx; }
-
-.studio { display: flex; flex-direction: column; gap: 6rpx; }
+@import "../../styles/member.wxss";
+.home-intro { padding: 8rpx 0 24rpx; }
+.home-intro .member-meta { margin-top: 6rpx; }
+.next-class { background: #40563b; color: #fff; padding: 32rpx; }
+.next-caption, .next-meta { color: #ecf2e8; font-size: 26rpx; }
+.next-time { font-size: 42rpx; font-weight: 700; margin-top: 6rpx; }
+.next-name { font-size: 32rpx; font-weight: 650; margin-top: 4rpx; }
+.next-meta { margin-top: 6rpx; }
+.next-actions, .home-actions { display: flex; gap: 14rpx; }
+.next-actions { margin-top: 24rpx; }
+.next-actions .member-action { flex: 1; }
+.checkin-action { background: #fff; color: #364b32; }
+.home-actions { margin-bottom: 20rpx; }
+.home-actions .member-action { flex: 1; }
+.available-row, .open-row { display: flex; align-items: center; justify-content: space-between; gap: 16rpx; padding: 20rpx 0; }
+.available-row .member-pill { flex-shrink: 0; }
+.no-slot { margin: 10rpx 0 20rpx; }
+.row-title { color: #39352f; font-size: 28rpx; font-weight: 600; }
+.home-banner { height: 234rpx; border-radius: 22rpx; overflow: hidden; margin-bottom: 20rpx; }
+.banner-slide { position: relative; background: #40563b; }
+.banner-img { width: 100%; height: 100%; display: block; }
+.banner-copy { position: absolute; inset: auto 0 0; background: linear-gradient(transparent, rgba(28, 40, 26, .85)); color: #fff; padding: 36rpx 26rpx 27rpx; }
+.banner-subtitle { margin-top: 4rpx; color: #fff; font-size: 25rpx; }
+.compact-list { padding: 4rpx 26rpx; }
+.coach-scroll { white-space: nowrap; }
+.coach-list { display: inline-flex; gap: 14rpx; }
+.coach-card { min-width: 160rpx; max-width: 240rpx; text-align: center; white-space: normal; margin-bottom: 0; }
+.coach-avatar { width: 88rpx; height: 88rpx; margin: 0 auto 8rpx; }
+.studio-row { margin-top: 20rpx; padding: 24rpx 28rpx; }
+.content-retry { margin: 12rpx auto; }

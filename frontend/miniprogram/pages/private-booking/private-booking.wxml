@@ -1,6 +1,6 @@
 <import src="../booking-confirm/readiness.wxml" />
 <view class="page">
-  <view class="card"><view class="section-title">选择教练</view><picker range="{{coaches}}" range-key="name" value="{{coachIndex}}" bindchange="onCoach"><view class="picker">{{coaches.length ? coaches[coachIndex].name : '暂无启用教练'}} ›</view></picker></view>
+  <view class="card"><view class="section-title">选择教练</view><picker range="{{coaches}}" range-key="name" value="{{coachIndex}}" disabled="{{submitting || loadingSetup}}" bindchange="onCoach"><view class="picker">{{coaches.length ? coaches[coachIndex].name : '暂无启用教练'}} ›</view></picker></view>
   <view class="card"><view class="section-title">训练目标</view><picker range="{{goals}}" bindchange="onGoal"><view class="picker">{{goal || '请选择训练目标'}} ›</view></picker></view>
   <view wx:if="{{bookingMode === 'FREE'}}" class="card">免费预约 · 无需购买课包</view>
   <view wx:elif="{{bookingMode}}" class="card"><view class="section-title">选择私教课包</view><picker range="{{packages}}" range-key="name" bindchange="onPkg"><view>{{packages.length ? packages[pkgIndex].name : '暂无适用课包'}}</view></picker></view>
