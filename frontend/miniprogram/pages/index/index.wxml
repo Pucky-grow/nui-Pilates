@@ -1,71 +1,89 @@
-<view class="page">
-  <!-- 品牌头部 -->
-  <view class="hero">
-    <view class="hero-title">优仪普拉提</view>
-    <view class="hero-slogan">{{slogan}}</view>
+<view class="member-page">
+  <view class="home-intro">
+    <view class="member-title">优仪普拉提</view>
+    <view class="member-meta">{{slogan}}</view>
   </view>
 
-  <!-- Banner -->
-  <swiper wx:if="{{banners.length}}" class="banner" indicator-dots autoplay circular>
-    <swiper-item wx:for="{{banners}}" wx:key="id">
-      <view class="banner-bg">
-        <image wx:if="{{item.imageUrl}}" class="banner-img" src="{{item.imageUrl}}" mode="aspectFill" />
-        <view class="banner-mask">
-          <text class="banner-title">{{item.title}}</text>
-          <text class="banner-sub">{{item.subtitle}}</text>
-        </view>
+  <view wx:if="{{planLoading}}" class="member-card member-state">正在查看上课安排…</view>
+  <view wx:elif="{{planError}}" class="member-card member-state">
+    {{planError}}<button class="member-action secondary" bindtap="loadPlans">重新加载</button>
+    <button class="member-action quiet" bindtap="goCourse">查看课表</button>
+  </view>
+  <view wx:elif="{{nextBooking}}" class="member-card next-class">
+    <view class="next-caption">下次上课</view>
+    <view class="next-time">{{nextBooking.dayText}} {{nextBooking.timeText}}</view>
+    <view class="next-name">{{nextBooking.courseName}}</view>
+    <view class="next-meta">{{nextBooking.coachName}}<text wx:if="{{nextBooking.classroomName}}"> · {{nextBooking.classroomName}}</text></view>
+    <view wx:if="{{nextBooking.checkinText}}" class="next-meta">{{nextBooking.checkinText}}</view>
+    <view class="next-actions">
+      <button class="member-action secondary" bindtap="goBooking">预约详情</button>
+      <button wx:if="{{nextBooking.canCheckin}}" class="member-action checkin-action" bindtap="checkin">去签到</button>
+    </view>
+  </view>
+  <view wx:else class="member-card available-card">
+    <view class="member-heading">最近可约</view>
+    <view wx:if="{{!available.length}}" class="member-meta no-slot">近 7 天暂无可约场次</view>
+    <view wx:for="{{available}}" wx:key="id" class="member-line available-row" bindtap="goSchedule" data-id="{{item.id}}">
+      <view>
+        <view class="row-title">{{item.courseName}}</view>
+        <view class="member-meta">{{item.dayText}} {{item.timeText}}<text wx:if="{{item.coachName}}"> · {{item.coachName}}</text></view>
+      </view>
+      <text class="member-pill">剩 {{item.remaining}} 席</text>
+    </view>
+    <button class="member-action" bindtap="goCourse">查看完整课表</button>
+  </view>
+
+  <view class="home-actions">
+    <button wx:if="{{nextBooking}}" class="member-action secondary" bindtap="goCourse">浏览课表</button>
+    <button class="member-action secondary" bindtap="goPrivate">私教预约</button>
+  </view>
+
+  <swiper wx:if="{{banners.length}}" class="home-banner" indicator-dots="{{banners.length > 1}}" indicator-active-color="#fff">
+    <swiper-item wx:for="{{banners}}" wx:key="id" class="banner-slide">
+      <image wx:if="{{item.imageUrl}}" class="banner-img" src="{{item.imageUrl}}" mode="aspectFill" />
+      <view wx:if="{{item.title || item.subtitle}}" class="banner-copy">
+        <view wx:if="{{item.title}}" class="member-heading">{{item.title}}</view>
+        <view wx:if="{{item.subtitle}}" class="banner-subtitle">{{item.subtitle}}</view>
       </view>
     </swiper-item>
   </swiper>
 
-  <!-- 快捷入口 -->
-  <view class="quick">
-    <view class="quick-item" bindtap="goCourse"><image class="qi-icon" src="/assets/icons/booking.png" mode="aspectFit"/><text>预约课程</text></view>
-    <view class="quick-item" bindtap="goPrivate"><image class="qi-icon" src="/assets/icons/private.png" mode="aspectFit"/><text>私教预约</text></view>
-    <view class="quick-item" bindtap="goBookings"><image class="qi-icon" src="/assets/icons/booking.png" mode="aspectFit"/><text>我的预约</text></view>
-    <view class="quick-item" bindtap="goCoaches"><image class="qi-icon" src="/assets/icons/coach.png" mode="aspectFit"/><text>教练团队</text></view>
-  </view>
-
-  <!-- 今日课程 -->
-  <view class="section-title">今日课程</view>
-  <scroll-view wx:if="{{todayCourses.length}}" scroll-x class="h-scroll">
-    <view class="course-card" wx:for="{{todayCourses}}" wx:key="id" bindtap="goSchedule" data-id="{{item.id}}">
-      <view class="cc-time">{{item.startTime}}</view>
-      <view class="cc-name">{{item.courseName}}</view>
-      <view class="muted">{{item.coachName}} · {{item.remaining}}席</view>
+  <block wx:if="{{hotCourses.length}}">
+    <view class="member-heading member-section">门店推荐</view>
+    <view class="member-card compact-list">
+      <view wx:for="{{hotCourses}}" wx:key="courseId" class="member-line open-row" bindtap="goCourseDetail" data-id="{{item.courseId}}">
+        <text class="row-title">{{item.courseName}}</text><text class="member-meta">{{item.typeText}} ›</text>
+      </view>
     </view>
-  </scroll-view>
-  <view wx:else class="empty">今日暂无课程</view>
+  </block>
 
-  <!-- 热门课程 -->
-  <view class="section-title">热门课程</view>
-  <view class="card course-row" wx:for="{{hotCourses}}" wx:key="id" bindtap="goCourseDetail" data-id="{{item.courseId}}">
-    <view class="course-name">{{item.courseName}}</view>
-    <view class="muted">{{item.difficulty}} · {{item.durationMinutes}}分钟</view>
-    <view class="tag">{{item.coachName}}</view>
-  </view>
-
-  <!-- 教练团队 -->
-  <view class="section-title">教练团队</view>
-  <scroll-view scroll-x class="h-scroll">
-    <view class="coach-card" wx:for="{{coaches}}" wx:key="id" bindtap="goCoach" data-id="{{item.id}}">
-      <image wx:if="{{item.avatar}}" class="avatar coach-avatar" src="{{item.avatar}}" mode="aspectFill" />
-      <view wx:else class="avatar coach-avatar coach-avatar-fallback">{{item.name}}</view>
-      <view class="coach-name">{{item.name}}</view>
-      <view class="muted">{{item.title}}</view>
+  <block wx:if="{{coaches.length}}">
+    <view class="member-between member-section">
+      <view class="member-heading">教练团队</view><text class="member-meta" bindtap="goCoaches">全部教练 ›</text>
     </view>
-  </scroll-view>
+    <scroll-view scroll-x class="coach-scroll">
+      <view class="coach-list">
+        <view wx:for="{{coaches}}" wx:key="coachId" class="member-card coach-card" bindtap="goCoach" data-id="{{item.coachId}}">
+          <image wx:if="{{item.avatar}}" class="avatar coach-avatar" src="{{item.avatar}}" mode="aspectFill" />
+          <view wx:else class="avatar coach-avatar coach-avatar-fallback">{{item.coachName}}</view>
+          <view class="row-title">{{item.coachName}}</view>
+          <view wx:if="{{item.coachTitle}}" class="member-meta">{{item.coachTitle}}</view>
+        </view>
+      </view>
+    </scroll-view>
+  </block>
 
-  <!-- 普拉提知识 -->
-  <view class="section-title">普拉提知识</view>
-  <view class="card article-row" wx:for="{{articles}}" wx:key="id" bindtap="goArticle" data-id="{{item.id}}">
-    <view class="article-title">{{item.title}}</view>
-    <view class="muted">{{item.author}} · {{item.views}}阅读</view>
-  </view>
-
-  <!-- 工作室地址 -->
-  <view class="card studio" bindtap="goAbout">
-    <text>📍 {{studio.address || '查看工作室地址'}}</text>
-    <text class="muted">{{studio.hours}}</text>
+  <block wx:if="{{articles.length}}">
+    <view class="member-heading member-section">普拉提知识</view>
+    <view class="member-card compact-list">
+      <view wx:for="{{articles}}" wx:key="id" class="member-line open-row" bindtap="goArticle" data-id="{{item.id}}">
+        <text class="row-title">{{item.title}}</text><text class="member-meta">›</text>
+      </view>
+    </view>
+  </block>
+  <button wx:if="{{contentError}}" class="member-action quiet content-retry" bindtap="loadContent">{{contentError}} · 重试</button>
+  <view class="member-card open-row studio-row" bindtap="goAbout">
+    <view><view class="row-title">工作室信息</view><view wx:if="{{studio.address}}" class="member-meta">{{studio.address}}</view></view>
+    <text class="member-meta">›</text>
   </view>
 </view>

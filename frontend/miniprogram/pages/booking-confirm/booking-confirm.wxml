@@ -1,5 +1,5 @@
 <import src="./readiness.wxml" />
-<view class="page">
+<view class="page confirmation-page">
   <view wx:if="{{loading}}" class="empty">加载中…</view>
   <view wx:if="{{error}}" class="empty" bindtap="retry">{{error}} · 点击刷新</view>
   <block wx:if="{{schedule && !loading}}">
@@ -11,6 +11,6 @@
     </view>
     <view class="card"><view class="section-title">训练目标（选填）</view><input class="remark" maxlength="255" placeholder="如：体态改善 / 核心训练" bindinput="onRemark" value="{{remark}}" /></view>
     <view wx:if="{{!schedule.bookable}}" class="empty">{{schedule.unbookableReason}}</view>
-    <view class="footer"><button wx:if="{{schedule.bookable}}" class="btn-primary" disabled="{{submitting}}" bindtap="submit">{{submitting ? '提交中…' : '确认预约'}}</button><button wx:elif="{{waitlistEnabled && schedule.bookingStatus === 'FULL'}}" class="btn-primary" disabled="{{submitting}}" bindtap="joinWaitlist">加入候补</button><button wx:else class="btn-plain" disabled>当前不可预约</button></view>
+    <view class="footer"><button wx:if="{{schedule.bookable}}" class="member-action" disabled="{{submitting}}" bindtap="submit">{{submitting ? '提交中…' : '确认预约'}}</button><button wx:elif="{{waitlistEnabled && schedule.bookingStatus === 'FULL'}}" class="member-action" disabled="{{submitting}}" bindtap="joinWaitlist">加入候补</button><button wx:else class="member-action" disabled>当前不可预约</button></view>
   </block>
 </view>

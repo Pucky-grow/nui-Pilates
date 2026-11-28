@@ -2,28 +2,41 @@ const api = require('../../services/api');
 const http = require('../../utils/request');
 const GOALS = ['体态改善', '核心训练', '身体塑形', '运动基础', '柔韧性训练', '产后运动恢复', '日常身体管理'];
 Page({
-  data: { coaches: [], coachIndex: 0, goals: GOALS, goal: '', schedules: [], pkgIndex: 0, packages: [], bookingMode: '', loading: true, error: '', submitting: false },
+  data: { coaches: [], coachIndex: 0, goals: GOALS, goal: '', schedules: [], pkgIndex: 0, packages: [], bookingMode: '', loadingSetup: true, loading: true, error: '', submitting: false },
   onLoad(options) { this.requestedCoach = options.coachId; },
   onShow() { return this.load(); },
-  load() {
-    this.setData({ loading: true, error: '' });
-    return http.login().then(() => Promise.all([api.bookingRules(), api.coaches()])).then(([rules, coaches]) => {
-      const selected = this.requestedCoach || this.data.coaches[this.data.coachIndex]?.id;
-      const index = Math.max(0, coaches.findIndex(c => String(c.id) === String(selected)));
+  async load() {
+    const generation = this.generation = (this.generation || 0) + 1;
+    const selected = this.requestedCoach || this.data.coaches[this.data.coachIndex]?.id;
+    const selectedPackage = this.data.packages[this.data.pkgIndex]?.id;
+    this.setData({ loadingSetup: true, loading: true, error: '', schedules: [] });
+    try {
+      await http.login();
+      const [rules, coaches] = await Promise.all([api.bookingRules(), api.coaches()]);
+      const packages = rules.bookingMode === 'FREE' ? [] : await api.myPackages('ACTIVE');
+      if (generation !== this.generation) return;
+      const coachIndex = Math.max(0, coaches.findIndex(coach => String(coach.id) === String(selected)));
       this.requestedCoach = null;
-      this.setData({ coaches, coachIndex: index, bookingMode: rules.bookingMode, packages: [] });
-      return (rules.bookingMode === 'FREE' ? Promise.resolve([]) : api.myPackages('ACTIVE'))
-        .then(packages => { this.setData({ packages: packages.filter(p => p.type === 'PRIVATE') }); return this.loadSchedules(); });
-    }).catch(e => this.setData({ loading: false, error: (e && e.message) || '私教课程加载失败，请重试' }));
+      const privatePackages = packages.filter(pack => pack.type === 'PRIVATE');
+      const pkgIndex = Math.max(0, privatePackages.findIndex(pack => pack.id === selectedPackage));
+      this.setData({ coaches, coachIndex, bookingMode: rules.bookingMode, packages: privatePackages, pkgIndex, loadingSetup: false });
+      return this.loadSchedules();
+    } catch (error) {
+      if (generation === this.generation) this.setData({ loadingSetup: false, loading: false, error: error?.message || '私教课程加载失败，请重试' });
+    }
   },
   retry() { return this.load(); },
-  onCoach(e) { this.setData({ coachIndex: Number(e.detail.value) }); return this.loadSchedules(); },
+  onCoach(e) {
+    if (this.data.submitting || this.data.loadingSetup) return;
+    this.setData({ coachIndex: Number(e.detail.value) });
+    return this.loadSchedules();
+  },
   onGoal(e) { this.setData({ goal: GOALS[e.detail.value] }); },
   onPkg(e) { this.setData({ pkgIndex: Number(e.detail.value) }); },
   loadSchedules(keepError = false) {
     const coach = this.data.coaches[this.data.coachIndex];
     const generation = this.generation = (this.generation || 0) + 1;
-    this.setData({ loading: true, ...(keepError ? {} : { error: '' }) });
+    this.setData({ loading: true, schedules: [], ...(keepError ? {} : { error: '' }) });
     if (!coach) { this.setData({ loading: false, schedules: [] }); return Promise.resolve(); }
     return api.coachSchedules(coach.id).then(list => { if (generation === this.generation) this.setData({ schedules: list.filter(s => s.courseType === 'PRIVATE'), loading: false }); })
       .catch(e => { if (generation === this.generation) this.setData({ loading: false, error: (e && e.message) || '私教时段加载失败，请重试' }); });

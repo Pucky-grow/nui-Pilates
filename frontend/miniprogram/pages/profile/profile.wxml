@@ -1,80 +1,67 @@
-<view class="page">
-  <view class="user-card">
-    <button class="avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
+<view class="member-page">
+  <view wx:if="{{profile}}" class="user-card">
+    <button class="avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar" aria-label="更换微信头像">
       <image wx:if="{{profile.avatarUrl}}" class="avatar user-avatar" src="{{profile.avatarUrl}}" mode="aspectFill" />
-      <view wx:else class="avatar user-avatar coach-avatar-fallback">{{profile.nickname}}</view>
+      <view wx:else class="avatar user-avatar coach-avatar-fallback">会员</view>
     </button>
     <view class="user-info">
-      <view class="user-name">{{profile.nickname || '优仪会员'}}</view>
-      <view class="tag">{{profile.levelName}}</view>
-      <view class="edit-hint">
-        <text class="link" bindtap="editNickname">编辑昵称</text>
-        <text class="muted"> · 点头像用微信头像 · </text>
-        <text class="link" bindtap="onChooseAlbum">从相册选择</text>
-      </view>
-      <view class="phone-row" wx:if="{{profile}}">
-        <text wx:if="{{profile.phoneBound}}">{{profile.phone}}</text>
-        <button wx:if="{{phoneEnabled}}" open-type="getPhoneNumber" bindgetphonenumber="bindWechatPhone">{{profile.phoneBound ? '更换手机号' : '授权手机号'}}</button>
-        <text wx:elif="{{!profile.phoneBound}}" class="muted">手机号绑定暂未开放</text>
+      <view class="member-title">{{profile.nickname || '优仪会员'}}</view>
+      <text class="member-meta">{{profile.levelName}}</text>
+      <view class="edit-hint"><text class="link" bindtap="editNickname">编辑昵称</text><text class="link" bindtap="onChooseAlbum">从相册换头像</text></view>
+      <view class="phone-row" wx:if="{{phoneEnabled || profile.phoneBound}}">
+        <text wx:if="{{profile.phoneBound}}" class="member-meta">{{profile.phone}}</text>
+        <button wx:if="{{phoneEnabled}}" class="member-action secondary" open-type="getPhoneNumber" bindgetphonenumber="bindWechatPhone">{{profile.phoneBound ? '更换手机号' : '授权手机号'}}</button>
       </view>
     </view>
   </view>
+  <view wx:elif="{{profileError}}" class="member-state">{{profileError}}<button class="member-action secondary" bindtap="loadProfile">重新加载</button></view>
+  <view wx:else class="member-state">正在读取会员资料…</view>
 
-  <!-- 教练工作台入口(教练专属, 置顶) -->
   <view wx:if="{{isCoach}}" class="coach-entry" bindtap="goCoachEnd">
-    <view>
-      <view class="coach-entry-title">教练工作台</view>
-      <view class="coach-entry-sub">课表 · 学员 · 训练记录</view>
-    </view>
-    <text class="coach-entry-arrow">›</text>
+    <view class="coach-entry-title">教练工作台</view><text class="coach-entry-arrow">›</text>
   </view>
 
-  <view class="stat-row card">
-    <view class="stat" bindtap="goTraining">
-      <text class="stat-num">{{profile.totalSessions}}</text>
-      <text class="muted">累计训练</text>
+  <view wx:if="{{studioLedger}}" class="member-card wallet-card">
+    <view class="member-between">
+      <view class="member-heading">可用余额</view>
+      <text class="wallet-link" bindtap="goLedger">余额与账单 ›</text>
     </view>
-    <view class="stat" bindtap="goPoints">
-      <text class="stat-num">{{points}}</text>
-      <text class="muted">积分</text>
-    </view>
-    <view class="stat" bindtap="goPackages">
-      <text class="stat-num">{{profile.totalConsumption}}</text>
-      <text class="muted">累计消费</text>
+    <view wx:if="{{walletLoading}}" class="wallet-meta">正在读取余额…</view>
+    <view wx:elif="{{walletError}}" class="wallet-meta" bindtap="loadWallet">余额暂时无法读取 · 重试</view>
+    <view wx:else class="wallet-accounts">
+      <view wx:for="{{accounts}}" wx:key="bucket" class="wallet-account">
+        <view class="wallet-amount">{{item.amount}}</view>
+        <view class="wallet-meta">{{item.name}}</view>
+      </view>
     </view>
   </view>
+  <view wx:elif="{{walletError}}" class="member-meta wallet-retry" bindtap="loadWallet">余额服务暂时无法读取 · 重试</view>
 
-  <!-- 我的约课 -->
-  <view class="menu card">
-    <view class="group-title">我的约课</view>
-    <view wx:if="{{studioLedger}}" class="menu-item" bindtap="goLedger"><text>历史课程与余额</text><text>›</text></view>
-    <view class="menu-item" bindtap="goBookings"><text>我的预约</text><text>›</text></view>
-    <view class="menu-item" bindtap="goTraining"><text>训练记录</text><text>›</text></view>
-    <view class="menu-item" bindtap="goAssessment"><text>身体评估</text><text>›</text></view>
-    <view class="menu-item" bindtap="goReviews"><text>课程评价</text><text>›</text></view>
+  <view class="member-card shortcuts">
+    <button class="member-action secondary" bindtap="goBookings">我的预约</button>
+    <button class="member-action secondary" bindtap="goTraining">训练记录</button>
+    <button wx:if="{{studioLedger}}" class="member-action secondary" bindtap="goLessonHistory">补录课程</button>
   </view>
 
-  <!-- 我的服务 -->
-  <view class="menu card">
-    <view class="group-title">我的服务</view>
-    <view class="menu-item" bindtap="goMessage"><text>消息中心</text><text wx:if="{{unread}}">({{unread}})</text><text>›</text></view>
-    <view class="menu-item" bindtap="goPackages"><text>我的课包</text><text>›</text></view>
-    <view class="menu-item" bindtap="goCoupons"><text>优惠券</text><text>›</text></view>
-    <view class="menu-item" bindtap="goPoints"><text>积分</text><text>›</text></view>
-    <view class="menu-item" bindtap="goInvite"><text>邀请好友</text><text>›</text></view>
-    <view class="menu-item" bindtap="goFeedback"><text>意见反馈</text><text>›</text></view>
+  <view class="member-heading member-section">会员服务</view>
+  <view class="member-card link-list">
+    <view class="member-line member-between" bindtap="goMessage"><text>消息中心</text><text class="member-meta">{{unread ? unread + ' 条未读 ›' : '›'}}</text></view>
+    <view class="member-line member-between" bindtap="goAssessment"><text>身体评估</text><text class="member-meta">›</text></view>
+    <view class="member-line member-between" bindtap="goReviews"><text>课程评价</text><text class="member-meta">›</text></view>
+    <view class="member-line member-between" bindtap="goPackages"><text>我的课包</text><text class="member-meta">›</text></view>
+    <view class="member-line member-between" bindtap="goOrders"><text>历史订单</text><text class="member-meta">›</text></view>
+    <view class="member-line member-between" bindtap="goCoupons"><text>优惠券</text><text class="member-meta">›</text></view>
+    <view class="member-line member-between" bindtap="goPoints"><text>积分</text><text class="member-meta">{{points == null ? '›' : points + ' ›'}}</text></view>
+    <view class="member-line member-between" bindtap="goInvite"><text>邀请好友</text><text class="member-meta">›</text></view>
+    <view class="member-line member-between" bindtap="goFeedback"><text>意见反馈</text><text class="member-meta">›</text></view>
   </view>
 
-  <!-- 账户 -->
-  <view class="menu card">
-    <view class="group-title">账户</view>
-    <view class="menu-item">
-      <text>当前登录</text>
-      <text class="muted">{{identity}}</text>
-    </view>
-    <view wx:if="{{studioLedger}}" class="menu-item" bindtap="goOfflineClaim"><text>绑定线下会员档案</text><text>›</text></view>
-    <view class="menu-item" bindtap="switchAccount"><text>切换账号</text><text>›</text></view>
-    <view class="logout-btn" bindtap="logout">退出登录</view>
+  <view class="member-heading member-section">账户设置</view>
+  <view class="member-card link-list">
+    <view wx:if="{{identity}}" class="member-line member-between"><text>当前登录</text><text class="member-meta">{{identity}}</text></view>
+    <view wx:if="{{studioLedger}}" class="member-line member-between" bindtap="goOfflineClaim"><text>绑定线下会员档案</text><text class="member-meta">›</text></view>
+    <view class="member-line member-between" bindtap="switchAccount"><text>切换账号</text><text class="member-meta">›</text></view>
+    <button class="member-action quiet logout-btn" bindtap="logout">退出登录</button>
   </view>
 
   <!-- 昵称弹窗 -->

@@ -1,2 +1,18 @@
-.heading { font-weight: 600; margin-bottom: 10rpx; }
-.tabs { display: flex; margin: 16rpx 0; }
+@import "../../styles/member.wxss";
+.balance { background: #40563b; color: #fff; }
+.balance-grid { display: flex; flex-wrap: wrap; gap: 18rpx; margin-top: 12rpx; }
+.balance-item { flex: 1; min-width: 220rpx; overflow-wrap: anywhere; }
+.balance-amount { font-weight: 700; font-size: 54rpx; line-height: 1.2; }
+.balance-meta { font-size: 26rpx; color: #e6efe2; margin-top: 8rpx; }
+.balance-meta button { margin-top: 14rpx; }
+.ledger-note { margin: 0 4rpx 14rpx; }
+.day-heading { margin: 20rpx 0 10rpx 6rpx; color: #625d52; font-weight: 600; font-size: 26rpx; }
+.ledger-group { padding: 0 24rpx; }
+.ledger-row { display: flex; justify-content: space-between; gap: 16rpx; padding: 20rpx 0; }
+.ledger-main { flex: 1; min-width: 0; }
+.ledger-title { font-size: 28rpx; margin-bottom: 4rpx; }
+.ledger-value { width: 32%; min-width: 120rpx; text-align: right; font-size: 24rpx; overflow-wrap: anywhere; }
+.ledger-amount { font-size: 30rpx; font-weight: 700; }
+.credit { color: #40563b; }
+.pending { color: #84572f; }
+.load-more { margin: 12rpx auto 0; }

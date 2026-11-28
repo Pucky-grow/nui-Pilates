@@ -1,18 +1,27 @@
-<view class="page">
-  <view wx:if="{{loading}}" class="empty">正在加载预约…</view>
-  <view wx:elif="{{error}}" class="empty" bindtap="load">{{error}} · 点击重试</view>
+<view class="member-page detail-page {{b && (b.canCancel || b.canCheckin || b.canReview) ? 'with-actions' : ''}}">
+  <view wx:if="{{loading}}" class="member-state">正在读取预约…</view>
+  <view wx:elif="{{error}}" class="member-state">{{error}}<button class="member-action secondary" bindtap="load">重新加载</button></view>
   <block wx:elif="{{b}}">
-  <view class="card">
-    <view class="name">{{b.courseName}}</view>
-    <view class="status">{{statusText[b.status]}}</view>
-    <view class="time">{{b.courseDate}} {{b.startTime}} - {{b.endTime}}</view>
-    <view class="muted">{{b.coachName}} · {{b.classroomName}}<text wx:if="{{b.packageName}}"> · 课包:{{b.packageName}}</text></view>
-    <view wx:if="{{b.publicCancelReason}}" class="muted">门店取消原因：{{b.publicCancelReason}}</view>
-  </view>
-  <view class="footer">
-    <button wx:if="{{b.canCancel}}" class="btn-plain" bindtap="cancel" disabled="{{cancelling}}">{{cancelling ? '处理中…' : '取消预约'}}</button>
-    <view wx:if="{{b.canCheckin}}" class="btn-primary" bindtap="checkin">去签到</view>
-    <view wx:if="{{b.canReview}}" class="btn-primary" bindtap="review">去评价</view>
-  </view>
+    <view class="member-card detail-card">
+      <view class="member-between"><view class="member-title">{{b.courseName}}</view><text class="member-pill">{{statusText[b.status] || '预约记录'}}</text></view>
+      <view class="detail-time">{{b.courseDate}} {{b.timeText}}</view>
+      <view class="member-meta">{{b.coachName}}<text wx:if="{{b.classroomName}}"> · {{b.classroomName}}</text><text wx:if="{{b.packageName}}"> · {{b.packageName}}</text></view>
+      <view wx:if="{{b.publicCancelReason}}" class="member-meta detail-note">门店取消原因：{{b.publicCancelReason}}</view>
+    </view>
+
+    <view wx:if="{{b.checkinText}}" class="member-card">
+      <view class="member-heading">{{b.checkinText}}</view>
+      <view wx:if="{{b.checkinText !== '签到已结束'}}" class="member-meta">到店后扫描工作人员出示的签到码。</view>
+    </view>
+    <view wx:if="{{b.feeText}}" class="member-card">
+      <view class="member-heading">取消约定</view>
+      <view class="member-meta">{{b.feeText}}</view>
+    </view>
+
+    <view wx:if="{{b.canCancel || b.canCheckin || b.canReview}}" class="footer">
+      <button wx:if="{{b.canCancel}}" class="member-action secondary" bindtap="cancel" disabled="{{cancelling}}">{{cancelling ? '处理中…' : '取消预约'}}</button>
+      <button wx:if="{{b.canCheckin}}" class="member-action" bindtap="checkin">去签到</button>
+      <button wx:if="{{b.canReview}}" class="member-action" bindtap="review">去评价</button>
+    </view>
   </block>
 </view>

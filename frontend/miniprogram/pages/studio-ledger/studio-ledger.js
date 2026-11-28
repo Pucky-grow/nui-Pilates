@@ -1,47 +1,82 @@
 const http = require('../../utils/request');
-const display = require('../../utils/studio-ledger');
+const { walletAccounts, ledgerRows } = require('../../utils/member-ledger');
+
 const paths = {
-  history: '/api/my/lesson-history',
   entries: '/api/my/wallet/entries',
+  history: '/api/my/lesson-history',
   fees: '/api/my/wallet/cancellation-fees'
 };
+const tabOptions = [{ key: 'entries', label: '账单明细' }, { key: 'history', label: '补录课程' }, { key: 'fees', label: '取消费' }];
+const emptyText = { entries: '暂无余额变动', history: '暂无门店补录课程', fees: '暂无已处理的取消费记录' };
 
 Page({
-  data: { tab: 'history', list: [], accounts: [], busy: false, error: '', more: false },
+  data: {
+    tab: 'entries', tabOptions, emptyText, groups: [], accounts: [],
+    walletLoading: true, walletError: '', listLoading: true, listError: '', more: false
+  },
+  onLoad(options) {
+    if (tabOptions.some(item => item.key === options.tab)) this.setData({ tab: options.tab });
+  },
   onShow() {
-    this.setData({ list: [], accounts: [], more: false });
-    if (http.ensureLogin()) this.load(false);
-  },
-  onPullDownRefresh() { this.load(false); },
-  tab(e) {
-    if (this.data.busy) return;
-    this.setData({ tab: e.currentTarget.dataset.tab, list: [], more: false });
-    this.load(false);
-  },
-  next() { this.load(true); },
-  retry() { this.load(false); },
-  async load(append) {
-    if (this.data.busy) return;
+    if (!http.ensureLogin()) {
+      this.rows = [];
+      this.setData({ accounts: [], groups: [], more: false });
+      return;
+    }
     const context = http.captureAuthContext();
-    const tab = this.data.tab;
-    const previous = this.data.list;
-    const last = previous[previous.length - 1];
-    this.setData({ busy: true, error: '' });
+    if (!this.context || !http.isAuthContextCurrent(this.context)) {
+      this.rows = [];
+      this.setData({ accounts: [], groups: [], more: false });
+    }
+    this.context = context;
+    return this.refresh();
+  },
+  onPullDownRefresh() { return this.refresh().finally(() => wx.stopPullDownRefresh()); },
+  refresh() { return Promise.all([this.loadWallet(), this.loadRows(false)]); },
+  selectTab(e) {
+    const key = e.currentTarget.dataset.tab;
+    if (key === this.data.tab || !tabOptions.some(item => item.key === key)) return;
+    this.rows = [];
+    this.setData({ tab: key, groups: [], more: false });
+    return this.loadRows(false);
+  },
+  next() {
+    if (this.data.more && !this.data.listLoading) return this.loadRows(true);
+  },
+  retryRows() { return this.loadRows(this.retryAppend); },
+  async loadWallet() {
+    const request = this.walletRequest = (this.walletRequest || 0) + 1;
+    const context = http.captureAuthContext();
+    this.setData({ walletLoading: true, walletError: '' });
     try {
-      const [wallet, rows] = await Promise.all([
-        http.get('/api/my/wallet', null, { skipAuth: true }),
-        http.get(paths[tab], append && last ? { before: last.id || last.booking_id } : {}, { skipAuth: true })
-      ]);
-      if (!http.isAuthContextCurrent(context)) return;
-      this.setData({
-        accounts: wallet.accounts.map(r => ({ ...r, name: display.label(r.bucket), amount: display.money(r.balance_fen) })),
-        list: (append ? previous : []).concat(rows.map(display.present)), more: rows.length === 30
-      });
+      const wallet = await http.get('/api/my/wallet', null, { skipAuth: true, silent: true });
+      if (request === this.walletRequest && http.isAuthContextCurrent(context)) this.setData({ accounts: walletAccounts(wallet) });
     } catch (error) {
-      if (http.isAuthContextCurrent(context)) this.setData({ error: error?.message || '读取失败，请重试' });
+      if (request === this.walletRequest && http.isAuthContextCurrent(context)) {
+        this.setData({ walletError: error?.message || '余额读取失败' });
+      }
     } finally {
-      this.setData({ busy: false });
-      wx.stopPullDownRefresh();
+      if (request === this.walletRequest) this.setData({ walletLoading: false });
+    }
+  },
+  async loadRows(append) {
+    const request = this.listRequest = (this.listRequest || 0) + 1;
+    const context = http.captureAuthContext();
+    const { tab } = this.data;
+    const previous = append ? this.rows || [] : [];
+    const last = previous[previous.length - 1];
+    this.setData({ listLoading: true, listError: '' });
+    try {
+      const rows = await http.get(paths[tab], last ? { before: last.id || last.booking_id } : {}, { skipAuth: true, silent: true });
+      if (request !== this.listRequest || !http.isAuthContextCurrent(context)) return;
+      this.rows = previous.concat(rows);
+      this.setData({ groups: ledgerRows(this.rows, tab), more: rows.length === 30 });
+    } catch (error) {
+      if (request !== this.listRequest || !http.isAuthContextCurrent(context)) return;
+      this.retryAppend = append;
+      this.setData({ listError: error?.message || '账单读取失败' });
+    } finally {
+      if (request === this.listRequest) this.setData({ listLoading: false });
     }
   }
 });
